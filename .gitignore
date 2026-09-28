@@ -1,0 +1,6 @@
+.DS_Store
+node_modules/
+.vercel/
+# lo que se genera al montar el juego
+fuentes/nuevo.html
+fuentes/check.js

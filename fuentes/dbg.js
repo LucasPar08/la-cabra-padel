@@ -1,0 +1,12 @@
+const fs = require('fs');
+const js = fs.readFileSync(process.argv[2], 'utf8').split('<script>')[1].split('</script>')[0];
+const el = () => ({ innerHTML:'', value:'Bot Prueba', hidden:true, textContent:'', style:{}, classList:{ add(){}, remove(){}, toggle(){} }, querySelector(){ return el(); } });
+const cache = {};
+global.document = { querySelector: s => cache[s] || (cache[s] = el()), querySelectorAll: () => [], documentElement:{ scrollTop:0 }, body:{ offsetHeight:0, classList:{ add(){}, remove(){} } }, addEventListener(){} };
+global.window = { scrollY:0, scrollTo(){} };
+eval(js + `;global.A = { get S(){ return S; }, get CFG(){ return CFG; }, crearYEmpezar, difActual, STAT_KEYS, probPartido, duplaRival, ARQUETIPOS, rankDePuntos, torneosDelTrimestre, estadoTorneo };`);
+document.querySelector('#fnom').value = 'Bot'; A.CFG.pais = 'AR'; A.crearYEmpezar();
+const j = A.S.j;
+for(const k of A.STAT_KEYS) j.stats[k] = 80;
+const riv = Object.assign(A.duplaRival(60), { arq: A.ARQUETIPOS[0] });
+console.log(process.argv[2], '· modo:', j.modo, '· sim:', A.difActual().sim, '· ayuda:', JSON.stringify(A.difActual().ayuda), '· 4000 pts →', A.rankDePuntos(4000), '· vs #60:', A.probPartido(j, riv, { t:'P2', pista:'indoor', nom:'x' }) + '%');

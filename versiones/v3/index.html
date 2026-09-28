@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LA CABRA · Pádel — Puntos clave</title>
+<meta name="description" content="Carrera de pádel rápida: los partidos se simulan y tú juegas los puntos que deciden, con tu mazo de golpes, del FIP Promises a los Majors.">
+<meta name="theme-color" content="#08191C">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2308191C'/%3E%3Crect x='14' y='11' width='36' height='42' rx='17' fill='%23DCF54A'/%3E%3C/svg%3E">
+<style>
+:root{
+  /* ── Identidad ── El pádel se juega sobre césped artificial verde entre
+     paredes de cristal. El fondo sale de ahí, no de un gris neutro. */
+  --page-bg:#08191C;
+  --card-bg:#0E2A2E;
+  --card-bg-2:#143439;
+  --border:rgba(110,215,195,.16);
+  --border-soft:rgba(110,215,195,.09);
+
+  /* ── Texto ── Tres niveles, ninguno a máximo contraste: un blanco puro
+     sobre casi negro produce halo y cansa a los diez minutos. */
+  --text:#DEEDE9;
+  --text-2:#AECAC5;
+  --muted:#87A8A3;
+
+  /* ── Acento ── Solo para lo interactivo. */
+  --accent:#22D3A5;
+  --accent-dim:#0E9B78;
+  --sobre-accent:#03211A;
+
+  /* ── Tipos de pista ── Tres familias de tono bien separadas entre sí y del
+     acento, para que una pista nunca se confunda con un botón. Siempre van
+     con icono y palabra: el color no es el único canal. */
+  --indoor:#9B87FF;      /* bajo techo · violeta */
+  --exterior:#F0A03C;    /* al aire libre · naranja sol */
+  --altura:#4FC3F7;      /* en altura · azul cielo fino */
+
+  /* ── Categorías ── Escalera de prestigio: de gris a oro. */
+  --cat-fip:#93A7BC;
+  --cat-star:#3AD98F;
+  --cat-plat:#29B6F6;
+  --cat-p1:#F075C0;
+  --cat-major:#F5C542;
+
+  /* ── Semánticos ── Independientes del acento. */
+  --bien:#43CE84;
+  --alerta:#F5C542;
+  --danger:#FF6B6B;
+  --gold:#F5C542;
+
+  --pelota:#DCF54A;
+  --radius:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--page-bg);
+  color:var(--text);
+  font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:15.5px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:40px;
+}
+#app{max-width:520px;margin:0 auto;padding:0 14px}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
+h1,h2,h3,h4{margin:0;font-weight:800;letter-spacing:-.02em}
+
+/* ── header ── */
+.topbar{position:sticky;top:0;z-index:30;background:rgba(5,18,20,.94);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);margin:0 -14px 12px;padding:9px 14px}
+.brand{display:flex;align-items:center;gap:8px;justify-content:center}
+.brand b{font-size:15px;font-weight:900;letter-spacing:.14em}
+/* La pala, no la pelota: es lo que distingue este deporte de un vistazo */
+.brand .pala{width:12px;height:16px;border-radius:6px 6px 5px 5px;background:var(--pelota);flex:none;
+  box-shadow:inset -2px -1px 0 rgba(0,0,0,.22)}
+.brand small{color:var(--muted);font-size:11px;letter-spacing:.2em;font-weight:700}
+
+/* ── hud ── */
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.hud div{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:5px 4px;text-align:center;min-width:0}
+.hud span{display:block;font-size:11px;letter-spacing:.06em;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hud b{display:block;font-size:14px;font-weight:800;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── cards ── */
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:11px}
+.card.pad0{padding:0;overflow:hidden}
+.eyebrow{font-size:11px;letter-spacing:.14em;color:var(--text-2);font-weight:800;text-transform:uppercase}
+.title-xl{font-size:29px;line-height:1.05;font-weight:900;letter-spacing:-.035em}
+.title-lg{font-size:20px;font-weight:900;letter-spacing:-.02em}
+.sub{color:var(--text-2);font-size:14.5px;line-height:1.5}
+.muted{color:var(--muted);font-size:13px;line-height:1.5}
+.hr{height:1px;background:var(--border-soft);margin:12px 0}
+
+/* ── botones ── */
+.btn{display:block;width:100%;background:var(--accent);color:var(--sobre-accent);border:0;border-radius:11px;
+  padding:13px;font-weight:900;letter-spacing:.05em;font-size:14px;text-align:center;transition:.12s}
+.btn:active{transform:scale(.985)}
+.btn:disabled{opacity:.32;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn.ghost:disabled{opacity:.3}
+.btn.sm{padding:9px;font-size:12.5px;border-radius:9px;min-height:44px}
+.btn.danger{background:rgba(239,68,68,.13);color:#FCA5A5;border:1px solid rgba(239,68,68,.32)}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+
+/* ── selects / inputs ── */
+label.f{display:block;font-size:11px;letter-spacing:.12em;color:var(--muted);font-weight:800;margin:12px 0 5px;text-transform:uppercase}
+input[type=text],select{width:100%;min-height:44px;background:var(--card-bg-2);border:1px solid var(--border);color:var(--text);
+  border-radius:10px;padding:11px;font-family:inherit;font-size:15px;outline:none;appearance:none}
+input[type=text]:focus,select:focus{border-color:rgba(34,211,165,.45)}
+
+/* ── opciones (chips grandes) ── */
+.opt{display:flex;gap:11px;align-items:flex-start;min-height:44px;background:var(--card-bg-2);border:1px solid var(--border);
+  border-radius:12px;padding:11px 12px;margin-bottom:7px;width:100%;text-align:left;transition:.12s}
+.opt:active{transform:scale(.99)}
+.opt.on{border-color:rgba(34,211,165,.5);background:rgba(34,211,165,.09)}
+.opt .ic{font-size:20px;line-height:1.2;flex:none;width:24px;text-align:center}
+.opt>span:not(.ic):not(.tier){min-width:0}
+.opt .t{display:block;font-weight:800;font-size:14px}
+.opt .d{display:block;color:var(--text-2);font-size:12.5px;line-height:1.45;margin-top:2px}
+.opt.lock{opacity:.42}
+
+/* ── grids ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+
+/* ── pills ── */
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;letter-spacing:.06em;
+  padding:3.5px 9px;border-radius:99px;border:1px solid var(--border);color:var(--text-2);text-transform:uppercase}
+.pill.indoor,.marca.indoor{color:#C3B5FF;border-color:rgba(155,135,255,.5);background:rgba(155,135,255,.15)}
+.pill.exterior,.marca.exterior{color:#F7C489;border-color:rgba(240,160,60,.5);background:rgba(240,160,60,.15)}
+.pill.altura,.marca.altura{color:#A5DEFA;border-color:rgba(79,195,247,.5);background:rgba(79,195,247,.15)}
+
+/* Marca de pista: cuadrito con el emoji, sin texto */
+.marca{display:inline-flex;align-items:center;justify-content:center;width:27px;height:27px;flex:none;
+  border-radius:8px;border:1px solid;font-size:14px;line-height:1}
+
+.leyenda{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:9px}
+.leyenda-t{font-size:11px;letter-spacing:.13em;color:var(--muted);font-weight:800;margin-right:1px}
+.pill.acc{color:var(--accent);border-color:rgba(34,211,165,.4);background:rgba(34,211,165,.1)}
+.pill.gold{color:var(--gold);border-color:rgba(245,197,66,.4);background:rgba(245,197,66,.1)}
+.pill.mal{color:var(--danger);border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.1)}
+
+/* ── tier badge ── */
+.cod{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:20px;padding:0 5px;
+  border-radius:5px;background:rgba(110,215,195,.14);border:1px solid var(--border);
+  font-size:11px;font-weight:900;letter-spacing:.06em;color:var(--text-2);flex:none}
+.tier{font-size:11px;font-weight:900;letter-spacing:.07em;padding:3px 7px;border-radius:6px;flex:none}
+.t-F{background:rgba(147,167,188,.16);color:var(--cat-fip)}
+.t-S{background:rgba(58,217,143,.16);color:var(--cat-star)}
+.t-P{background:rgba(41,182,246,.16);color:var(--cat-plat)}
+.t-1{background:rgba(240,117,192,.18);color:var(--cat-p1)}
+.t-M{background:rgba(245,197,66,.18);color:var(--cat-major)}
+
+/* ── barras stats ── */
+.stat{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+.stat .n{font-size:11.5px;letter-spacing:.05em;color:var(--text-2);font-weight:800;width:78px;flex:none;text-transform:uppercase}
+.stat .bar{flex:1;height:7px;border-radius:99px;background:rgba(34,211,165,.09);overflow:hidden;position:relative}
+.stat .bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.stat .bar u{position:absolute;top:-2px;width:2px;height:11px;background:rgba(255,255,255,.28)}
+.stat .v{width:26px;text-align:right;font-size:12px;font-weight:800;flex:none;font-variant-numeric:tabular-nums}
+.stat .up{color:var(--accent);font-size:11px;font-weight:800;width:26px;flex:none}
+
+/* ── meter ── */
+.meter{height:8px;border-radius:99px;background:rgba(34,211,165,.09);overflow:hidden}
+.meter i{display:block;height:100%;border-radius:99px;transition:.3s}
+
+/* ── partido ── */
+.match{background:var(--card-bg-2);border:1px solid var(--border);border-radius:12px;padding:11px 12px;margin-bottom:7px}
+.match .rd{font-size:11px;letter-spacing:.11em;color:var(--muted);font-weight:800;margin-bottom:7px}
+.mrow{display:flex;align-items:center;gap:8px;padding:2.5px 0}
+.mrow .nm{flex:1;font-size:13px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow.win .nm{font-weight:900}
+.mrow.lose .nm{color:var(--muted)}
+.mrow .rk{font-size:11.5px;color:var(--muted);font-weight:700;flex:none}
+.mrow .sc{display:flex;gap:5px;flex:none}
+.mrow .sc s{text-decoration:none;font-variant-numeric:tabular-nums;font-weight:600;font-size:14px;width:13px;text-align:center;color:var(--muted)}
+.mrow .sc s.g{font-weight:800;color:var(--text)}
+.mrow .dot{width:6px;height:6px;border-radius:50%;flex:none}
+.mrow.win .dot{background:var(--accent)}
+.mrow.lose .dot{background:transparent}
+
+/* ── log ── */
+.log{background:rgba(110,215,195,.06);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;
+  padding:10px 12px;font-size:13.5px;color:var(--text-2);margin-bottom:7px;line-height:1.55}
+.log.bad{border-left-color:var(--danger)}
+.log.gold{border-left-color:var(--gold)}
+
+/* ── listas ── */
+.li{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--border-soft)}
+.li:last-child{border-bottom:0}
+.li .g{flex:1;min-width:0}
+.li .g b{display:block;font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .g span{font-size:12px;color:var(--muted)}
+
+/* ── tabs ── */
+.tabs{display:flex;gap:5px;margin-bottom:11px}
+.tabs button{flex:1;min-height:44px;background:var(--card-bg);border:1px solid var(--border);border-radius:9px;padding:8px 4px;
+  font-size:11px;font-weight:800;letter-spacing:.05em;color:var(--muted)}
+.tabs button.on{background:rgba(34,211,165,.12);border-color:rgba(34,211,165,.36);color:var(--accent)}
+
+
+/* ═══ GOLPE A GOLPE · componentes propios ═══ */
+
+/* ── marcador de puntos clave ── */
+.marcador{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px}
+.marcador .clave{grid-column:1 / -1;order:-1;margin-bottom:2px}
+.marcador .lado{display:flex;flex-direction:column;gap:3px;min-width:0}
+.marcador .lado.der{align-items:flex-end;text-align:right}
+.marcador .nom{font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.bolas{display:flex;gap:4px}
+.bolas i{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--border);display:block}
+.bolas i.si{background:var(--pelota);border-color:var(--pelota)}
+.bolas.ellos i.si{background:var(--danger);border-color:var(--danger)}
+.clave{font-size:10.5px;font-weight:900;letter-spacing:.12em;color:var(--gold);text-align:center;text-transform:uppercase}
+
+/* ── la pista: quién tiene la red, de un vistazo ── */
+.pista{position:relative;height:118px;border-radius:12px;overflow:hidden;margin:10px 0 8px;
+  background:linear-gradient(180deg,#0F4A43 0%,#0C3F39 49.5%,#0C3F39 50.5%,#0F4A43 100%);
+  border:2px solid rgba(220,245,74,.18)}
+.pista:before{content:'';position:absolute;left:0;right:0;top:50%;height:3px;margin-top:-1.5px;background:rgba(255,255,255,.55)}
+.pista .linea{position:absolute;left:12%;right:12%;height:1px;background:rgba(255,255,255,.18)}
+.pista .zona{position:absolute;left:0;right:0;height:50%;display:flex;align-items:center;justify-content:center;gap:34px}
+.pista .zona.arriba{top:0}.pista .zona.abajo{bottom:0}
+.ficha{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:900;transition:transform .35s ease;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.ficha.yo{background:var(--pelota);color:#1b2a05}
+.ficha.el{background:#FF8A8A;color:#3a0707}
+.etq-red{position:absolute;left:8px;font-size:9.5px;font-weight:900;letter-spacing:.1em;padding:2px 6px;border-radius:5px}
+.etq-red.nuestra{background:rgba(220,245,74,.2);color:var(--pelota)}
+.etq-red.suya{background:rgba(255,107,107,.2);color:#FFB3B3}
+
+/* ── dominio: la cuerda del punto ── */
+.dominio{display:flex;gap:3px;margin-top:4px}
+.dominio i{flex:1;height:12px;border-radius:3px;background:rgba(255,255,255,.07);display:block}
+.dominio i.c{background:rgba(255,255,255,.28)}
+.dominio i.v{background:var(--pelota)}
+.dominio i.r{background:var(--danger)}
+.dom-leyenda{display:flex;justify-content:space-between;font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--muted);margin-top:4px}
+
+/* ── lo que va a hacer la pareja rival ── */
+.intencion{display:flex;align-items:center;gap:10px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);
+  border-radius:11px;padding:9px 11px}
+.intencion.def{background:rgba(155,135,255,.08);border-color:rgba(155,135,255,.35)}
+.intencion .ic{font-size:22px;flex:none}
+.intencion>div>b{display:block;font-size:13.5px}
+.intencion span b{display:inline;font-size:inherit}
+.intencion span{display:block;font-size:12px;color:var(--text-2)}
+.cuando{font-size:9.5px;font-weight:900;letter-spacing:.1em;padding:2px 6px;border-radius:5px;margin-left:auto;flex:none;
+  background:rgba(255,255,255,.08);color:var(--text-2);white-space:nowrap}
+
+/* ── energía y cobertura ── */
+.recursos{display:flex;align-items:center;gap:12px;margin:9px 0 7px}
+.orbes{display:flex;gap:5px}
+.orbes i{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-style:normal;
+  background:rgba(245,197,66,.14);border:1.5px solid rgba(245,197,66,.35)}
+.orbes i.si{background:var(--gold);border-color:var(--gold)}
+.escudo{font-size:12.5px;font-weight:800;color:#C3B5FF}
+
+/* ── la mano de golpes ── */
+.mano{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px 7px;margin-top:10px}
+.carta{position:relative;display:flex;flex-direction:column;align-items:stretch;text-align:left;min-height:128px;padding:8px 8px 9px;
+  border-radius:12px;border:1.5px solid var(--border);background:var(--card-bg-2);transition:transform .12s, opacity .12s}
+.carta:active{transform:scale(.96)}
+.carta.red{border-color:rgba(220,245,74,.45)}
+.carta.fondo{border-color:rgba(79,195,247,.45)}
+.carta.libre{border-color:rgba(255,255,255,.22)}
+.carta.muerta{border-style:dashed;opacity:.5}
+.carta.no{opacity:.36}
+.carta .coste{position:absolute;top:-7px;left:-5px;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#2a1d00;
+  font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.carta .zona-c{font-size:9px;font-weight:900;letter-spacing:.1em;margin-left:14px}
+.carta.red .zona-c{color:var(--pelota)} .carta.fondo .zona-c{color:var(--altura)} .carta.libre .zona-c{color:var(--text-2)}
+.carta .ic{font-size:21px;margin:4px 0 2px}
+.carta .nm{font-size:12px;font-weight:900;line-height:1.15}
+.carta .ef{font-size:10.8px;color:var(--text-2);line-height:1.3;margin-top:3px}
+.carta .mas{color:var(--accent)}
+.carta.grande{min-height:150px}
+
+/* ── la ruta de la temporada ── */
+.ruta{display:flex;gap:4px;margin-top:9px}
+.ruta i{flex:1;height:7px;border-radius:99px;background:rgba(255,255,255,.08);display:block}
+.ruta i.hecha{background:var(--accent)}
+.ruta i.ahora{background:var(--gold)}
+.parada{display:flex;gap:11px;align-items:flex-start}
+
+/* ── punto de oro ── */
+.oro-hero{background:linear-gradient(160deg,rgba(245,197,66,.18),transparent 62%);border-color:rgba(245,197,66,.4)}
+.oro-hero .clave{font-size:12px}
+
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.fade{animation:f .22s ease-out}
+#app.sin-entrada .fade{animation:none}
+@keyframes f{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes golpe{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+.pulso{animation:golpe .35s ease-out}
+@media (prefers-reduced-motion: reduce){ .fade,.pulso{animation:none} .carta,.ficha{transition:none} }
+.center{text-align:center}.mb0{margin-bottom:0}.tabular{font-variant-numeric:tabular-nums}
+
+/* ═══ PUNTOS CLAVE · lo nuevo del modo rápido ═══ */
+.mano.momento{grid-template-columns:repeat(2,minmax(0,1fr))}
+.carta.sel{border-color:var(--gold);background:rgba(245,197,66,.1);transform:translateY(-4px);box-shadow:0 6px 16px rgba(0,0,0,.35)}
+.carta.sel .coste{background:var(--accent);color:var(--sobre-accent)}
+.prevision{border-radius:12px;padding:10px 12px;border:1px solid var(--border);background:var(--card-bg-2);margin-top:9px}
+.prevision.gana{border-color:rgba(67,206,132,.6);background:rgba(67,206,132,.1)}
+.prevision.pierde{border-color:rgba(255,107,107,.45);background:rgba(255,107,107,.07)}
+.prev-barra{position:relative;height:12px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:7px}
+.prev-barra i{position:absolute;top:0;bottom:0;left:0;background:var(--pelota);border-radius:99px;transition:width .2s}
+.prev-barra u{position:absolute;top:0;bottom:0;width:3px;background:var(--gold)}
+.desglose{display:flex;flex-wrap:wrap;gap:3px 12px;font-size:12px;color:var(--text-2);margin-top:6px}
+.desglose b{color:var(--text)}
+.ronda{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border-soft)}
+.ronda:last-child{border-bottom:0}
+.ronda .res{margin-left:auto;font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+'use strict';
+
+const SAVE_KEY = 'cabra_padel_clave_v1';
+const $ = s => document.querySelector(s);
+const rnd = (a,b) => a + Math.random()*(b-a);
+const ri  = (a,b) => Math.floor(rnd(a,b+1));
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money = n => n>=1e6 ? (n/1e6).toFixed(1)+'M€' : n>=1000 ? Math.round(n/100)/10+'k€' : Math.round(n)+'€';
+function barajar(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const k=Math.floor(Math.random()*(i+1)); [a[i],a[k]]=[a[k],a[i]]; } return a; }
+function pesado(items){ const t=items.reduce((a,x)=>a+x.p,0); let u=Math.random()*t; for(const x of items){ u-=x.p; if(u<=0) return x; } return items[items.length-1]; }
+
+/* ═══════════════════════════════════════════════════════════════
+   PUNTOS CLAVE
+   Lo rápido del modo carrera y lo interactivo del modo cartas, juntos.
+   Los partidos se simulan en un segundo. Solo cuando algo se decide —la
+   semifinal, la final o una bola de partido en contra— te toca jugar: UNA
+   mano, UNA decisión, y ves antes de jugar si te alcanza.
+   ═══════════════════════════════════════════════════════════════ */
+const ENERGIA = 3;          // energía del momento clave
+const MANO = 5;             // golpes en la mano: con cinco siempre hay una decisión de verdad
+const MAZO_MAX = 12;        // con el mazo lleno, cada golpe nuevo sustituye a otro
+const MAZO_MIN = 6;
+const TRIMESTRES = ['Enero · Marzo','Abril · Junio','Julio · Septiembre','Octubre · Diciembre'];
+
+let S = null;
+let CFG = { nombre:'', genero:'M', pais:'ES', posicion:'reves', estilo:'rematador', error:null };
+function esF(){ return S && S.j ? S.j.genero === 'F' : CFG.genero === 'F'; }
+function gx(m, f){ return esF() ? f : m; }
+
+/* ── LOS GOLPES ──
+   Cada carta declara lo que aporta al punto; el evaluador lo suma todo. Así la
+   pantalla puede enseñar el resultado ANTES de jugar, con la misma cuenta. */
+const CARTAS = {
+  volea:      {nom:'Volea',            ic:'🎯', coste:1, zona:'red',   rareza:'basica', ef:m=>({empuje:m?3:2}),                 txt:m=>`+${m?3:2} dominio.`},
+  bandeja:    {nom:'Bandeja',          ic:'🍽️', coste:1, zona:'red',   rareza:'basica', ef:m=>({empuje:m?2:1, mantiene:true}),  txt:m=>`+${m?2:1} dominio. <b>Mantiene la red.</b>`},
+  globo:      {nom:'Globo',            ic:'☂️', coste:1, zona:'fondo', rareza:'basica', ef:m=>({globo:1, empuje:m?1:0}),        txt:m=>`<b>Subís a la red</b> y podéis jugar 🔺. Falla si hacen bandeja.${m?' +1 dominio.':''}`},
+  defensa:    {nom:'Defensa de pared', ic:'🧱', coste:1, zona:'fondo', rareza:'basica', ef:m=>({cob:m?4:3}),                    txt:m=>`Paráis ${m?4:3} de su ataque.`},
+  vibora:     {nom:'Víbora',           ic:'🐍', coste:2, zona:'red',   rareza:'comun',  ef:m=>({empuje:m?5:4, mantiene:true}),  txt:m=>`+${m?5:4} dominio. <b>Mantiene la red.</b>`},
+  voleaProf:  {nom:'Volea profunda',   ic:'🧊', coste:1, zona:'red',   rareza:'comun',  ef:m=>({empuje:m?2:1, debil:m?3:2}),    txt:m=>`+${m?2:1} dominio. Su ataque −${m?3:2}.`},
+  dejada:     {nom:'Dejada',           ic:'🪶', coste:1, zona:'red',   rareza:'comun',  ef:m=>({empuje:m?3:2, ignora:true}),    txt:m=>`+${m?3:2} dominio. <b>Ignora su defensa.</b>`},
+  contrapared:{nom:'Contrapared',      ic:'🔄', coste:1, zona:'fondo', rareza:'comun',  ef:m=>({cob:m?3:2, empuje:1}),          txt:m=>`Paráis ${m?3:2} y +1 dominio.`},
+  chiquita:   {nom:'Chiquita',         ic:'🐁', coste:1, zona:'fondo', rareza:'comun',  ef:m=>({empuje:m?2:1, debil:m?3:2}),    txt:m=>`+${m?2:1} dominio. Su ataque −${m?3:2}.`},
+  salida:     {nom:'Salida de pared',  ic:'⚡', coste:2, zona:'fondo', rareza:'comun',  ef:m=>({cob:m?4:3, empuje:2}),          txt:m=>`Paráis ${m?4:3} y +2 dominio.`},
+  comunicacion:{nom:'¡Mía!',           ic:'🗣️', coste:1, zona:'libre', rareza:'comun',  ef:m=>({cob:m?3:2, empuje:1}),          txt:m=>`Paráis ${m?3:2} y +1 dominio.`},
+  bandejaCort:{nom:'Bandeja cortada',  ic:'🔪', coste:0, zona:'red',   rareza:'rara',   ef:m=>({empuje:m?2:1, mantiene:true}),  txt:m=>`+${m?2:1} dominio. Mantiene la red. <b>Gratis.</b>`},
+  remate3:    {nom:'Remate por 3',     ic:'🚀', coste:3, zona:'red',   rareza:'rara',   ef:m=>({empuje:m?8:7}),                 txt:m=>`+${m?8:7} dominio.`},
+  globoProf:  {nom:'Globo profundo',   ic:'🌙', coste:2, zona:'fondo', rareza:'rara',   ef:m=>({globo:2, empuje:m?2:1}),        txt:m=>`Subís a la red <b>aunque hagan bandeja</b>. +${m?2:1} dominio.`},
+  ritmo:      {nom:'Cambio de ritmo',  ic:'🎛️', coste:1, zona:'libre', rareza:'rara',   ef:m=>({frena:m?4:3}),                  txt:m=>`Su golpe pierde ${m?4:3} de fuerza (ataque o defensa).`},
+  vamos:      {nom:'¡Vamos!',          ic:'🔥', coste:0, zona:'libre', rareza:'rara',   ef:m=>({energia:m?2:1}),                txt:m=>`+${m?2:1}⚡ para este punto.`},
+  cruce:      {nom:'Cruce',            ic:'✖️', coste:2, zona:'red',   rareza:'rara',   ef:m=>({empuje:m?4:3, mantiene:true, cruce:true}), txt:m=>`+${m?4:3} dominio, +2 con química 60. Mantiene la red.`},
+  salirPista: {nom:'Salir de la pista',ic:'🚪', coste:2, zona:'fondo', rareza:'epica',  ef:m=>({anula:true, empuje:m?3:2}),     txt:m=>`<b>Su ataque no os hace nada.</b> +${m?3:2} dominio.`},
+  remate4:    {nom:'Remate por 4',     ic:'☄️', coste:3, zona:'red',   rareza:'epica',  ef:m=>({empuje:m?11:9}),                txt:m=>`+${m?11:9} dominio.`},
+  muralla:    {nom:'La muralla',       ic:'🏰', coste:2, zona:'fondo', rareza:'epica',  ef:m=>({cob:m?7:6, empuje:1}),          txt:m=>`Paráis ${m?7:6} y +1 dominio.`},
+  oro:        {nom:'Cabeza fría',      ic:'🥇', coste:1, zona:'libre', rareza:'epica',  ef:m=>({empuje:m?2:1, oro:m?3:2}),      txt:m=>`+${m?2:1} dominio. En el punto de oro, +${m?3:2} más.`},
+};
+const ZONA_NOM = {red:'🔺 RED', fondo:'🔻 FONDO', libre:'⚪ LIBRE'};
+const VALOR_RAREZA = {basica:.5, comun:1, rara:1.6, epica:2.2};
+function parsearCarta(e){ const m = e.endsWith('+'); const id = m ? e.slice(0,-1) : e; return {id, m, def:CARTAS[id]}; }
+function costeCarta(e){ return parsearCarta(e).def.coste; }
+function nomCarta(e){ const {def,m} = parsearCarta(e); return def.nom + (m ? '+' : ''); }
+function valorCarta(e){ const {def,m} = parsearCarta(e); return VALOR_RAREZA[def.rareza] + (m ? .5 : 0); }
+
+const PAISES = [
+  ['AR','ARG','Argentina'],['BO','BOL','Bolivia'],['CL','CHI','Chile'],['CO','COL','Colombia'],['CR','CRC','Costa Rica'],
+  ['CU','CUB','Cuba'],['EC','ECU','Ecuador'],['SV','ESA','El Salvador'],['ES','ESP','España'],['GQ','GEQ','Guinea Ecuatorial'],
+  ['GT','GUA','Guatemala'],['HN','HON','Honduras'],['MX','MEX','México'],['NI','NCA','Nicaragua'],['PA','PAN','Panamá'],
+  ['PY','PAR','Paraguay'],['PE','PER','Perú'],['PR','PUR','Puerto Rico'],['DO','DOM','República Dominicana'],['UY','URU','Uruguay'],['VE','VEN','Venezuela'],
+].map(([id,cod,nom])=>({id,cod,nom}));
+function paisPorId(id){ return PAISES.find(p=>p.id===id) || PAISES[8]; }
+
+/* ── El circuito ── nivel = lo fuertes que son las parejas rivales */
+const TIERS = {
+  FIP1:{nom:'FIP PROMISES', cls:'t-F', etq:'PROMISES', nivel:0,   rondas:3, acc:9999, pts:[40,24,12,0],        prem:300},
+  FIP2:{nom:'FIP RISE',     cls:'t-F', etq:'RISE',     nivel:1.2,   rondas:3, acc:1400, pts:[70,42,21,0],        prem:600},
+  FIP3:{nom:'FIP STAR',     cls:'t-S', etq:'STAR',     nivel:2.5,   rondas:3, acc:800,  pts:[120,72,36,0],       prem:1100},
+  FIP4:{nom:'FIP GOLD',     cls:'t-S', etq:'GOLD',     nivel:3.8,   rondas:3, acc:500,  pts:[200,120,60,0],      prem:2000},
+  FIP5:{nom:'FIP PLATINUM', cls:'t-S', etq:'PLATINUM', nivel:5,   rondas:3, acc:320,  pts:[320,190,95,0],      prem:3500},
+  P2:  {nom:'PREMIER P2',   cls:'t-P', etq:'P2',       nivel:6.5, rondas:3, acc:180,  pts:[500,300,150,0],     prem:7000},
+  P1:  {nom:'PREMIER P1',   cls:'t-1', etq:'P1',       nivel:8.5,   rondas:4, acc:90,   pts:[900,540,270,120,0], prem:14000},
+  MJ:  {nom:'MAJOR',        cls:'t-M', etq:'MAJOR',    nivel:10.5, rondas:4, acc:45,   pts:[1800,1080,540,240,0], prem:30000},
+};
+const ORDEN_TIER = ['FIP1','FIP2','FIP3','FIP4','FIP5','P2','P1','MJ'];
+const NOM_RONDA = {3:['CUARTOS','SEMIFINAL','FINAL'], 4:['OCTAVOS','CUARTOS','SEMIFINAL','FINAL']};
+const SEDES = ['Madrid','Málaga','Valencia','Sevilla','Buenos Aires','Mar del Plata','Santiago','Asunción','Montevideo','Monterrey',
+  'Acapulco','Bruselas','Milán','Roma','París','Doha','Riad','Dubái','Miami','Lisboa','Vigo','Zaragoza','Córdoba','Lima','Bogotá'];
+const MAJORS = [['Qatar Major','Doha'],['Italy Major','Roma'],['Roland Garros Major','París'],['Mexico Major','Acapulco']];
+
+/* Ranking: suma de los mejores resultados de las últimas 8 paradas de torneo */
+const TABLA_RK = [[6000,1],[4800,2],[4000,3],[3400,4],[2900,6],[2400,8],[2000,10],[1500,15],[1200,20],[900,30],
+  [700,45],[520,60],[400,80],[300,100],[220,140],[160,190],[110,260],[75,350],[50,480],[30,650],[15,900],[5,1300],[1,1800]];
+function rankDePuntos(p){
+  if(!p || p < 1) return null;
+  if(p >= TABLA_RK[0][0]) return 1;
+  for(let i=0;i<TABLA_RK.length-1;i++){
+    const [p1,r1]=TABLA_RK[i], [p2,r2]=TABLA_RK[i+1];
+    if(p<=p1 && p>=p2){ const t=(Math.log(p)-Math.log(p2))/(Math.log(p1)-Math.log(p2)); return Math.max(1,Math.round(r2+t*(r1-r2))); }
+  }
+  return 1800;
+}
+
+const NOM_A = ['Juan','Agustín','Martín','Franco','Álex','Javi','Fran','Nico','Lucas','Gonzalo','Maxi','Fede','Iván','Álvaro','Rubén',
+  'Jon','Aitor','Pablo','Dani','Marc','Bruno','Tiago','Rodrigo','Bautista','Santi','Diego','Ramiro','Facundo','Julián','Matías'];
+const NOM_F = ['Ariana','Paula','Bea','Marta','Alejandra','Delfi','Gemma','Claudia','Lucía','Sofía','Tamara','Aranza','Vero','Martina',
+  'Julieta','Carolina','Nuria','Bárbara','Andrea','Sara','Alba','Carla','Rocío','Noa','Marina','Irene','Laura','Camila','Valentina','Renata'];
+const NOM_B = ['González','Fernández','Rodríguez','Martínez','Sánchez','Pérez','Gómez','Ruiz','Díaz','Álvarez','Romero','Navarro','Torres',
+  'Domínguez','Ramos','Gil','Serrano','Molina','Suárez','Castro','Ortega','Delgado','Iglesias','Belluati','Corbalán','Lombardi','Costa',
+  'Almeida','Brea','Ibarra','Quiroga','Peralta','Sosa','Acosta','Benítez','Cabrera','Villalba','Zabala','Escudero','Larsen','Moreau'];
+function nombreGen(gen){ return pick(gen==='F'?NOM_F:NOM_A) + ' ' + pick(NOM_B); }
+const ARQUETIPOS = [
+  {id:'muro',     nom:'globo y paciencia',   red:{volea:3,bandeja:4,vibora:1,remate:.3,dejada:.5},  fondo:{globo:5,defensa:3,contrapared:2,chiquita:1,salida:1}},
+  {id:'red',      nom:'todo a la red',       red:{volea:5,bandeja:2,vibora:2,remate:.6,dejada:1},   fondo:{globo:3,defensa:2,contrapared:1,chiquita:3,salida:.5}},
+  {id:'potencia', nom:'potencia y remate',   red:{volea:2,bandeja:1.5,vibora:3.5,remate:1.5,dejada:.3}, fondo:{globo:3,defensa:2.5,contrapared:1.5,chiquita:1,salida:1}},
+  {id:'zurda',    nom:'zurd@ al drive',      red:{volea:3,bandeja:2.5,vibora:2,remate:.6,dejada:2}, fondo:{globo:3.5,defensa:2,contrapared:2,chiquita:2,salida:1}},
+  {id:'joven',    nom:'jóvenes sin miedo',   red:{volea:3.5,bandeja:1,vibora:3,remate:1.2,dejada:1},fondo:{globo:2.5,defensa:1.5,contrapared:1,chiquita:2.5,salida:.5}},
+  {id:'oficio',   nom:'oficio y colocación', red:{volea:2.5,bandeja:3.5,vibora:1.5,remate:.4,dejada:2}, fondo:{globo:4,defensa:3,contrapared:2.5,chiquita:1.5,salida:2}},
+];
+function intencionDe(id, n, rasgo){
+  /* Lo que hace cada golpe rival crece con su nivel. Desde el fondo también
+     hacen daño —salida de pared, chiquita— y a partir de cierto nivel sus
+     globos son tan profundos que ni la bandeja os deja arriba. */
+  const r = x => Math.round(x);
+  const ex = rasgo === 'exhibicion' ? 2 : 0;
+  const I = {
+    volea:      {nom:'Volea',           ic:'🎯', ataque:2+r(n*.45)},
+    bandeja:    {nom:'Bandeja',         ic:'🍽️', ataque:1+r(n*.3), bandeja:true},
+    vibora:     {nom:'Víbora',          ic:'🐍', ataque:3+r(n*.55)+ex},
+    remate:     {nom:'Remate por 3',    ic:'🚀', ataque:5+r(n*.6)+ex},
+    dejada:     {nom:'Dejada',          ic:'🪶', ataque:2+r(n*.35), ignoraCob:true},
+    globo:      {nom:'Globo',           ic:'☂️', globo:true, profundo: n>=3 && Math.random() < .12 + n*.05},
+    defensa:    {nom:'Defensa de pared',ic:'🧱', cob:2+r(n*.55)},
+    contrapared:{nom:'Contrapared',     ic:'🔄', cob:1+r(n*.35), ataque:1+r(n*.25)},
+    chiquita:   {nom:'Chiquita',        ic:'🐁', chiquita:true, ataque:1+r(n*.3)},
+    salida:     {nom:'Salida de pared', ic:'⚡', cob:2+r(n*.4), ataque:2+r(n*.35)},
+  }[id];
+  if(I.profundo) I.nom = 'Globo profundo';
+  return Object.assign({id}, I);
+}
+
+/* ── Estilos: con qué ocho golpes empiezas ── */
+const ESTILOS = {
+  rematador:{nom:'REMATADOR', ic:'💥', rol:'cierra',   d:'Todo lo que sube, baja por tres. Arrasas con la red; sufres abajo.', extra:['vibora','volea']},
+  voleador: {nom:'VOLEADOR',  ic:'🎯', rol:'cierra',   d:'Pegado a la red: golpes baratos, dejadas y punto corto.',            extra:['dejada','voleaProf']},
+  paredista:{nom:'PAREDISTA', ic:'🧱', rol:'sostiene', d:'Del cristal sacas lo imposible y contraatacas.',                     extra:['salida','contrapared']},
+  tactico:  {nom:'TÁCTICO',   ic:'🧠', rol:'sostiene', d:'Globo profundo y chiquita: ganas puntos que no deberías.',           extra:['globoProf','chiquita']},
+};
+const POSICIONES = {
+  reves:{nom:'REVÉS', ic:'⬅️', d:'Cierras el punto. Empiezas con una Bandeja más.',  extra:'bandeja'},
+  drive:{nom:'DRIVE', ic:'➡️', d:'Construyes el punto. Empiezas con una Defensa más.', extra:'defensa'},
+};
+function mazoInicial(estilo, pos){ return ['volea','bandeja','globo','defensa','comunicacion'].concat(ESTILOS[estilo].extra, [POSICIONES[pos].extra]); }
+
+/* ── Parejas: una pasiva, un golpe y una calidad de 1 a 5 ── */
+const TIPOS_PAREJA = {
+  rematador:{apodo:'el Cañón',      pasiva:'canon', pasNom:'Cañón',         pasTxt:'Tus golpes de 2⚡ o más empujan +1.',        cartas:['vibora']},
+  voleador: {apodo:'Manos de Seda', pasiva:'seda',  pasNom:'Manos de seda', pasTxt:'Tu primera Volea de cada punto cuesta 0.', cartas:['dejada']},
+  paredista:{apodo:'la Muralla',    pasiva:'muro',  pasNom:'Muralla',       pasTxt:'Paráis 2 más en cada punto clave.',         cartas:['salida']},
+  tactico:  {apodo:'el Profe',      pasiva:'profe', pasNom:'El Profe',      pasTxt:'Un golpe más en la mano.',                   cartas:['globoProf']},
+};
+function encaja(a, b){ return ESTILOS[a].rol !== ESTILOS[b].rol; }
+function calidadDisponible(j){ const r = j.ranking || 9999; return r<=5 ? 5 : r<=25 ? 4 : r<=100 ? 3 : r<=400 ? 2 : 1; }
+function nuevaPareja(estilo, gen, calidad){
+  const t = TIPOS_PAREJA[estilo];
+  return { nombre:nombreGen(gen), apodo:t.apodo, estilo, pasiva:t.pasiva, cartas:t.cartas.slice(), flag:pick(PAISES).cod, quimica:0, calidad, temporadas:0 };
+}
+/* Tres opciones con tensión: la que encaja, una mejor que quizá no, y una más barata */
+function candidatosPareja(j){
+  const c = calidadDisponible(j), est = Object.keys(ESTILOS), bien = est.filter(e=>encaja(j.estilo, e));
+  return [[pick(bien), c], [pick(est), Math.min(5, c+1)], [pick(bien), Math.max(1, c-1)]].map(([e, q]) => {
+    const p = nuevaPareja(e, j.genero, q); p.quimica = encaja(j.estilo, e) ? 30 : 10; return p;
+  });
+}
+function nomPareja(p){ return p ? `${esc(p.nombre)} «${esc(p.apodo)}»` : '—'; }
+
+/* ── Material: dura toda la carrera ── */
+const MATERIALES = {
+  carbono:  {nom:'Pala de carbono',        ic:'🏓', precio:140, txt:'+1 dominio en cada punto clave.'},
+  grip:     {nom:'Grip nuevo',             ic:'🩹', precio:110, txt:'El primer Globo de cada punto cuesta 0.'},
+  zapas:    {nom:'Zapatillas de agarre',   ic:'👟', precio:120, txt:'Paráis 2 más en cada punto clave.'},
+  libreta:  {nom:'Libreta de rivales',     ic:'📓', precio:150, txt:'Un golpe más en la mano.'},
+  visera:   {nom:'Visera',                 ic:'🧢', precio:120, txt:'Su ataque hace 2 menos.'},
+  munequera:{nom:'Muñequera de la suerte', ic:'🎗️', precio:130, txt:'En el punto de oro, +1⚡.'},
+  paletero: {nom:'Paletero de marca',      ic:'🎒', precio:100, txt:'+50% de premio en cada torneo.'},
+  toalla:   {nom:'Toalla de la suerte',    ic:'🧺', precio:90,  txt:'Cambiar la mano no te quita un golpe.'},
+};
+function tieneMaterial(id){ return S.j.materiales.includes(id); }
+function pasiva(id){ return !!(S.j.pareja && S.j.pareja.pasiva === id); }
+
+/* ── Parejas rivales ── */
+function nivelRival(tier, ronda){
+  /* Al número uno todo el mundo le juega la vida */
+  const r = S.j.ranking || 9999;
+  return TIERS[tier].nivel + ronda*.4 + (r<=3 ? 1.5 : r<=10 ? 1 : r<=25 ? .5 : 0);
+}
+function nuevoRival(tier, ronda){
+  return { nombre:nombreGen(S.j.genero), nombre2:nombreGen(S.j.genero), flag:pick(PAISES).cod, arq:pick(ARQUETIPOS), nivel:nivelRival(tier, ronda) };
+}
+/* En un punto de un solo turno los números rivales crecen más despacio que su nivel */
+function elegirIntencion(red, R){
+  const pesos = red === 'el' ? R.arq.red : R.arq.fondo;
+  const id = pesado(Object.keys(pesos).map(k=>({id:k, p:pesos[k]}))).id;
+  const I = intencionDe(id, R.nivel * .6, null);
+  /* En un punto de una sola mano los números rivales tienen que caber en la meta:
+     en el FIP pegan flojo; en un Major, como en un Major. */
+  const f = clamp(.45 + R.nivel*.05, .45, 1.1);
+  if(I.ataque) I.ataque = Math.max(1, Math.round(I.ataque * f));
+  if(I.cob) I.cob = Math.max(1, Math.round(I.cob * f));
+  return I;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TU NIVEL · PARTIDOS SIMULADOS · EL PUNTO CLAVE
+   ═══════════════════════════════════════════════════════════════ */
+/* Tu nivel se ve y se explica: edad, mazo, pareja y material */
+function nivelJugador(j){
+  const edad = j.edad <= 27 ? (j.edad-18)*.35 : j.edad <= 31 ? 3.15 : 3.15 - (j.edad-31)*.55;
+  const media = j.mazo.reduce((a,e)=>a+valorCarta(e), 0) / Math.max(1, j.mazo.length);
+  const mazo = Math.max(0, (media - .55) * 3);
+  const p = j.pareja;
+  const pareja = p ? p.calidad*.35 + (encaja(j.estilo, p.estilo) ? 1 : -.8) + p.quimica/120 : 0;
+  const material = j.materiales.length * .2;
+  return { total: .5 + edad + mazo + pareja + material, edad, mazo, pareja, material };
+}
+
+/* ── Un partido simulado: un segundo y cifras de pádel ── */
+function probVictoria(gap){ return 1/(1+Math.exp(-gap/1.4)); }
+function marcador(gano, apretado){
+  const set = (g, a) => { const s = a ? pick(['7-5','7-6','6-4']) : pick(['6-2','6-3','6-4']); return g ? s : s.split('-').reverse().join('-'); };
+  return apretado ? [set(gano,true), set(!gano,true), set(gano,true)].join('  ') : [set(gano,false), set(gano,true)].join('  ');
+}
+function fichaSimulada(gano, gap){
+  const oros = ri(3,9);
+  return { red: clamp(Math.round(50 + gap*3 + (gano?6:-6) + rnd(-6,6)), 25, 78), oros,
+           orosG: clamp(Math.round(oros*(gano ? rnd(.5,.8) : rnd(.2,.5))), 0, oros),
+           roturas: gano ? ri(3,6) : ri(1,4), roturasContra: gano ? ri(1,4) : ri(3,6) };
+}
+function simularPartido(R){
+  const gap = nivelJugador(S.j).total - R.nivel;
+  const gano = Math.random() < probVictoria(gap);
+  return { gano, gap, marcador: marcador(gano, Math.abs(gap) < 1.2 || Math.random() < .3), ficha: fichaSimulada(gano, gap) };
+}
+
+/* ── EL PUNTO CLAVE: una mano, una decisión ── */
+const TIPO_MOMENTO = {
+  semifinal:{titulo:'BOLA DE PARTIDO',           sit:'Semifinal · 6-5 en el tercer set, sacáis para ganar',  extra:0},
+  final:    {titulo:'PUNTO DE ORO',              sit:'Final · 5-5 en el tercero, iguales: un solo punto',     extra:1, oro:true},
+  rescate:  {titulo:'BOLA DE PARTIDO EN CONTRA', sit:'Os tienen contra las cuerdas. Si ganáis este punto, lo dais vuelta', extra:1},
+};
+function crearMomento(tipo, R){
+  const j = S.j, gap = nivelJugador(j).total - R.nivel, T = TIPO_MOMENTO[tipo];
+  const red = Math.random() < clamp(.5 + gap*.05, .25, .75) ? 'yo' : 'el';
+  const pool = barajar(j.mazo.concat(j.pareja ? j.pareja.cartas : [], j.pareja && j.pareja.quimica >= 30 ? ['cruce'] : []));
+  const n = MANO + (pasiva('profe') ? 1 : 0) + (tieneMaterial('libreta') ? 1 : 0);
+  /* La meta solo depende de lo buenos que son ellos. Tu mazo no la baja: ya se
+     nota en la mano que tienes. Edad, pareja y material te ayudan en las rondas
+     simuladas y a empezar el punto con la red, que es donde tienen sentido. */
+  /* Una final grande pide más: a esa altura el mazo ya tiene golpes de punto de oro */
+  const objetivo = clamp(Math.round(1.2 + R.nivel*.6) + T.extra + (T.oro && R.nivel >= 9 ? 2 : 0), 1, 14);
+  return { tipo, rival:R, red, esOro:!!T.oro, objetivo,
+           intencion: elegirIntencion(red, R), mano: pool.slice(0, n), resto: pool.slice(n), sel: [], cambios: 1, resultado: null };
+}
+
+/* La misma cuenta sirve para enseñar la previsión y para resolver el punto */
+function evaluarJugada(M, sel){
+  const j = S.j, I = M.intencion;
+  const cartas = sel.map(i => Object.assign({e:M.mano[i]}, parsearCarta(M.mano[i])));
+  const efs = cartas.map(c => c.def.ef(c.m));
+  const sum = k => efs.reduce((a,f)=>a + (typeof f[k]==='number' ? f[k] : 0), 0);
+  const energia = ENERGIA + (M.esOro && tieneMaterial('munequera') ? 1 : 0) + sum('energia');
+  const globo = efs.reduce((a,f)=>Math.max(a, f.globo||0), 0);
+  const subimos = M.red === 'el' && (globo === 2 || (globo === 1 && !I.bandeja));
+  const conRed = M.red === 'yo' || subimos;
+  let coste = 0, volea = true, glob = true, motivo = null;
+  for(const c of cartas){
+    let k = c.def.coste;
+    if(volea && pasiva('seda') && (c.id==='volea' || c.id==='voleaProf')){ k = 0; volea = false; }
+    if(glob && tieneMaterial('grip') && (c.id==='globo' || c.id==='globoProf')){ k = 0; glob = false; }
+    if(I.chiquita && c.def.zona === 'red') k += 1;
+    if(c.def.zona === 'red' && !conRed) motivo = I.bandeja && globo === 1 ? 'Con su bandeja vuestro globo no entra: no podéis jugar 🔺' : 'Para jugar 🔺 primero hay que subir con un Globo';
+    if(c.def.zona === 'fondo' && M.red === 'yo') motivo = 'Con la red no se juegan golpes 🔻';
+    coste += k;
+  }
+  if(!motivo && coste > energia) motivo = `Os falta${coste-energia>1?'n':''} ${coste-energia}⚡`;
+  let normal = 0, ignora = 0;
+  cartas.forEach((c,i)=>{ const f = efs[i]; let e = f.empuje || 0;
+    if(pasiva('canon') && c.def.coste >= 2) e += 1;
+    if(f.cruce && j.pareja && j.pareja.quimica >= 60) e += 2;
+    if(M.esOro && f.oro) e += f.oro;
+    if(f.ignora) ignora += e; else normal += e; });
+  if(tieneMaterial('carbono') && cartas.length) normal += 1;
+  const frena = sum('frena');
+  const defensaRival = Math.max(0, (I.cob||0) - frena);
+  const empuje = Math.max(0, normal - defensaRival) + ignora + (subimos ? 1 : 0);
+  const cob = sum('cob') + (pasiva('muro') ? 2 : 0) + (tieneMaterial('zapas') ? 2 : 0);
+  const ataque = I.ataque ? Math.max(0, I.ataque - frena - sum('debil') - (tieneMaterial('visera') ? 2 : 0)) : 0;
+  const pasa = efs.some(f=>f.anula) ? 0 : I.ignoraCob ? ataque : Math.max(0, ataque - cob);
+  const pierdeRed = !!I.globo && M.red === 'yo' && (I.profundo || !efs.some(f=>f.mantiene));
+  const total = empuje - pasa - (pierdeRed ? 3 : 0);
+  return { valida:!motivo, motivo, coste, energia, empuje, defensaRival, cob, ataque, pasa, pierdeRed, subimos, total, gana: !motivo && total >= M.objetivo };
+}
+/* ¿Hay alguna jugada ganadora en la mano? (para avisar de cambiar la mano) */
+function mejorTotal(M){
+  let mejor = -99;
+  for(let mask = 0; mask < (1 << M.mano.length); mask++){
+    const sel = []; for(let i=0;i<M.mano.length;i++) if(mask & (1<<i)) sel.push(i);
+    const ev = evaluarJugada(M, sel); if(ev.valida && ev.total > mejor) mejor = ev.total;
+  }
+  return mejor;
+}
+function toggleCarta(i){ const M = S.momento; if(M.resultado) return; const k = M.sel.indexOf(i); if(k >= 0) M.sel.splice(k, 1); else M.sel.push(i); render(); }
+function cambiarMano(){
+  const M = S.momento; if(M.cambios <= 0 || M.resultado) return;
+  const n = Math.max(2, M.mano.length - (tieneMaterial('toalla') ? 0 : 1));
+  const pool = barajar(M.resto.concat(M.mano));
+  M.mano = pool.slice(0, n); M.resto = pool.slice(n); M.sel = []; M.cambios--;
+  guardar(); render();
+}
+function jugarMomento(){
+  const M = S.momento; if(M.resultado) return;
+  const ev = evaluarJugada(M, M.sel); if(!ev.valida) return;
+  M.resultado = { gana: ev.gana, ev };
+  guardar(); render();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CARRERA · TEMPORADA · TORNEO
+   Una temporada son cuatro trimestres y un torneo por trimestre. Un toque
+   simula las primeras rondas; semifinal y final se juegan a un punto.
+   ═══════════════════════════════════════════════════════════════ */
+function nuevoJugador(cfg){
+  const p = paisPorId(cfg.pais);
+  return { nombre:cfg.nombre, genero:cfg.genero, pais:p.id, cod:p.cod, posicion:cfg.posicion, estilo:cfg.estilo,
+    edad:18, temporadaN:1, dinero:150, mazo:mazoInicial(cfg.estilo, cfg.posicion), materiales:[], pareja:null,
+    puntosHist:[], ranking:null, mejorRank:null, titulos:[], pj:0, pg:0, pp:0, orosG:0, orosJ:0, stops:0, hist:[], retirado:false };
+}
+function crearYEmpezar(){
+  const inp = $('#fnom');
+  const n = ((inp ? inp.value : CFG.nombre) || '').trim();
+  if(n.length < 2){ CFG.error = 'Escribe tu nombre para empezar.'; render(); return; }
+  CFG.nombre = n; CFG.error = null;
+  S.j = nuevoJugador(CFG);
+  S.candidatos = candidatosPareja(S.j);
+  S.pantalla = 'pareja'; guardar(); render();
+}
+function elegirPareja(i){
+  const j = S.j;
+  if(i === 'mantener') j.pareja.temporadas++;
+  else j.pareja = S.candidatos[i];
+  S.candidatos = null;
+  S.temporada = { n:j.temporadaN, trimestre:0, opciones:null, tiendaHecha:false, eventoEn:ri(1,3), eventoHecho:false };
+  S.msgs = [`🏓 <b>Temporada ${j.temporadaN}.</b> ${j.edad} años, ${j.ranking ? '#'+j.ranking+' del mundo' : 'sin ranking'}. Cuatro trimestres, un torneo en cada uno.`];
+  mostrarSiguiente();
+}
+
+function tiersAccesibles(j){ const r = j.ranking || 99999; return ORDEN_TIER.filter(t => t==='FIP1' || TIERS[t].acc >= r); }
+function opcionTorneo(tier, etiqueta, wildcard){
+  const mj = tier === 'MJ' ? pick(MAJORS) : null, ciudad = mj ? mj[1] : pick(SEDES);
+  return { tier, etiqueta, ciudad, wildcard:!!wildcard, nom: mj ? mj[0] : `${TIERS[tier].nom} de ${ciudad}` };
+}
+function generarOpciones(){
+  const acc = tiersAccesibles(S.j), nivel = acc[acc.length-1], i = ORDEN_TIER.indexOf(nivel);
+  const debajo = ORDEN_TIER[Math.max(0, i-1)], encima = ORDEN_TIER[Math.min(ORDEN_TIER.length-1, i+1)];
+  const ops = [];
+  if(debajo !== nivel) ops.push(opcionTorneo(debajo, 'PARA SUMAR CONFIANZA'));
+  ops.push(opcionTorneo(nivel, 'A TU NIVEL'));
+  if(encima !== nivel) ops.push(opcionTorneo(encima, 'CON INVITACIÓN · MÁS DURO', true));
+  return ops;
+}
+function mostrarSiguiente(){
+  const T = S.temporada;
+  S.torneo = null; S.momento = null; S.premio = null;
+  if(T.trimestre >= 4) return finTemporada();
+  if(T.trimestre === 2 && !T.tiendaHecha){ T.tiendaHecha = true; return abrirTienda(); }
+  if(T.trimestre === T.eventoEn && !T.eventoHecho){ T.eventoHecho = true; return abrirEvento(); }
+  T.opciones = generarOpciones();
+  S.pantalla = 'temporada'; guardar(); render();
+}
+function elegirTorneo(i){
+  const op = S.temporada.opciones[i]; if(!op) return;
+  S.torneo = { tier:op.tier, nom:op.nom, ciudad:op.ciudad, wildcard:op.wildcard, rondas:TIERS[op.tier].rondas, ronda:0, partidos:[], campeon:false, eliminado:false };
+  S.pantalla = 'torneo'; guardar(); render();
+}
+
+/* Un toque: se simulan las rondas hasta que algo se decida */
+function jugarRonda(){
+  const TO = S.torneo;
+  while(TO.ronda < TO.rondas){
+    const R = nuevoRival(TO.tier, TO.ronda);
+    const tipo = TO.ronda === TO.rondas-1 ? 'final' : TO.ronda === TO.rondas-2 ? 'semifinal' : null;
+    if(tipo) return abrirMomento(tipo, R);
+    const sim = simularPartido(R);
+    if(!sim.gano) return abrirMomento('rescate', R);
+    registrarPartido(R, true, sim.marcador, sim.ficha, null);
+    TO.ronda++;
+  }
+}
+function abrirMomento(tipo, R){ S.momento = crearMomento(tipo, R); S.pantalla = 'momento'; guardar(); render(); }
+function registrarPartido(R, gano, marc, ficha, tipo){
+  const j = S.j, TO = S.torneo;
+  TO.partidos.push({ ronda:NOM_RONDA[TO.rondas][TO.ronda], rival:R, gano, marcador:marc, ficha, tipo });
+  j.pj++; if(gano) j.pg++; else j.pp++;
+  if(j.pareja) j.pareja.quimica = clamp(j.pareja.quimica + (gano ? 3 : -2), 0, 100);
+}
+function trasMomento(){
+  const M = S.momento, TO = S.torneo, j = S.j, gano = M.resultado.gana;
+  if(M.esOro){ j.orosJ++; if(gano) j.orosG++; }
+  const gap = nivelJugador(j).total - M.rival.nivel;
+  registrarPartido(M.rival, gano, marcador(gano, true), fichaSimulada(gano, gap), M.tipo);
+  S.momento = null;
+  if(!gano){ TO.eliminado = true; return finTorneo(); }
+  TO.ronda++;
+  if(TO.ronda >= TO.rondas){ TO.campeon = true; return finTorneo(); }
+  jugarRonda();
+}
+
+function recalcRank(j){
+  j.ranking = rankDePuntos(j.puntosHist.slice(-8).reduce((a,x)=>a+x.pts, 0));
+  if(j.ranking && (!j.mejorRank || j.ranking < j.mejorRank)) j.mejorRank = j.ranking;
+}
+function finTorneo(){
+  const j = S.j, TO = S.torneo, T = TIERS[TO.tier];
+  const idx = TO.campeon ? 0 : (T.rondas - TO.ronda);
+  const pts = T.pts[Math.min(idx, T.pts.length-1)] || 0;
+  const prem = Math.round(T.prem * [1,.55,.3,.15,.06][Math.min(idx,4)] / 10 * (tieneMaterial('paletero') ? 1.5 : 1));
+  const antes = j.ranking;
+  j.stops++; j.puntosHist.push({pts, stop:j.stops}); recalcRank(j);
+  j.dinero += prem;
+  if(TO.campeon){ j.titulos.push({nom:TO.nom, tier:TO.tier, t:j.temporadaN, edad:j.edad}); j.hist.push(`🏆 ${TO.nom} (${j.temporadaN}ª temporada)`); }
+  const ronda = TO.campeon ? gx('CAMPEÓN','CAMPEONA') : idx===1 ? 'FINALISTA' : idx===2 ? 'SEMIFINAL' : idx===3 ? 'CUARTOS' : 'OCTAVOS';
+  S.finT = { pts, prem, antes, ronda, campeon:TO.campeon };
+  const extra = j.mazo.length >= 10 ? 'quitar' : 'dinero';
+  S.premio = { opciones: ['golpe','mejorar', extra], sub:null, cartas:null, nueva:null };
+  S.pantalla = 'finTorneo'; guardar(); render();
+}
+
+/* ── Premio tras cada torneo: una sola elección ── */
+const PREMIOS = {
+  golpe:  {ic:'🃏', t:'Golpe nuevo',     d:'Elige 1 de 3. Con el mazo lleno sustituye a otro.'},
+  mejorar:{ic:'⬆️', t:'Pulir un golpe',  d:'Mejora un golpe de tu mazo.'},
+  quitar: {ic:'✂️', t:'Limpiar el mazo', d:'Quita un golpe flojo: saldrán más los buenos.'},
+  dinero: {ic:'💰', t:'Exhibición',      d:'Dinero para el patrocinador.'},
+};
+function draftCartas(nivel, campeon){
+  const pool = Object.keys(CARTAS).filter(id => CARTAS[id].rareza !== 'basica' && id !== 'cruce');
+  const peso = id => ({comun:6, rara:1.5 + nivel*.45 + (campeon?1.5:0), epica:.3 + nivel*.2 + (campeon?.8:0)})[CARTAS[id].rareza];
+  const out = [];
+  while(out.length < 3) out.push(pesado(pool.filter(x=>!out.includes(x)).map(id=>({id, p:peso(id)}))).id);
+  return out.map(id => Math.random() < .08 + nivel*.03 ? id+'+' : id);
+}
+function elegirPremio(tipo){
+  const P = S.premio, j = S.j;
+  if(tipo === 'golpe'){ P.sub = 'draft'; P.cartas = draftCartas(TIERS[S.torneo.tier].nivel, S.torneo.campeon); return render(); }
+  if(tipo === 'mejorar' || tipo === 'quitar'){ P.sub = tipo; return render(); }
+  if(tipo === 'dinero'){ const d = 80 + Math.round(TIERS[S.torneo.tier].nivel*30); j.dinero += d; S.msgs = [`💰 Exhibición pagada: <b>+${money(d)}</b>.`]; return avanzarTemporada(); }
+}
+function tomarCarta(i){
+  const P = S.premio, e = P.cartas[i], j = S.j;
+  if(j.mazo.length < MAZO_MAX){ j.mazo.push(e); S.msgs = [`🃏 <b>${nomCarta(e)}</b> entra en tu mazo.`]; return avanzarTemporada(); }
+  P.nueva = e; P.sub = 'sustituir'; render();
+}
+function sustituirCarta(k){ const P = S.premio, j = S.j, fuera = j.mazo[k]; j.mazo[k] = P.nueva; S.msgs = [`🔁 <b>${nomCarta(P.nueva)}</b> entra por <b>${nomCarta(fuera)}</b>.`]; avanzarTemporada(); }
+function mejorarCarta(k){ const j = S.j, e = j.mazo[k]; if(e.endsWith('+')) return; j.mazo[k] = e+'+'; S.msgs = [`⬆️ <b>${nomCarta(e)}</b> ahora es <b>${nomCarta(e+'+')}</b>.`]; avanzarTemporada(); }
+function quitarCarta(k){
+  const j = S.j; if(j.mazo.length <= MAZO_MIN) return;
+  const e = j.mazo.splice(k,1)[0]; S.msgs = [`✂️ Fuera <b>${nomCarta(e)}</b>.`];
+  if(S.tienda){ S.tienda.sub = null; return render(); }
+  avanzarTemporada();
+}
+function avanzarTemporada(){ S.temporada.trimestre++; mostrarSiguiente(); }
+
+/* ── Patrocinador: a mitad de temporada, rápido y opcional ── */
+function abrirTienda(){
+  const j = S.j; j.dinero += 80;
+  const precio = e => ({comun:55, rara:95, epica:150})[CARTAS[parsearCarta(e).id].rareza] + (e.endsWith('+') ? 35 : 0);
+  const libres = Object.keys(MATERIALES).filter(id => !j.materiales.includes(id));
+  const niv = TIERS[tiersAccesibles(j).slice(-1)[0]].nivel;
+  S.tienda = { cartas: draftCartas(niv, false).map(e=>({e, precio:precio(e), vendida:false})),
+               materiales: barajar(libres).slice(0,2).map(id=>({id, vendida:false})), quitarUsado:false, sub:null };
+  S.msgs = ['💰 Mitad de temporada: tu patrocinador te pasa <b>80€</b>.'];
+  S.pantalla = 'tienda'; guardar(); render();
+}
+function comprarCarta(i){ const j = S.j, it = S.tienda.cartas[i]; if(it.vendida || j.dinero < it.precio || j.mazo.length >= MAZO_MAX) return; j.dinero -= it.precio; it.vendida = true; j.mazo.push(it.e); guardar(); render(); }
+function comprarMaterial(i){ const j = S.j, it = S.tienda.materiales[i], M = MATERIALES[it.id]; if(it.vendida || j.dinero < M.precio) return; j.dinero -= M.precio; it.vendida = true; j.materiales.push(it.id); guardar(); render(); }
+function comprarQuitar(){ const j = S.j; if(S.tienda.quitarUsado || j.dinero < 60 || j.mazo.length <= MAZO_MIN) return; j.dinero -= 60; S.tienda.quitarUsado = true; S.tienda.sub = 'quitar'; render(); }
+function salirTienda(){ S.tienda = null; mostrarSiguiente(); }
+
+/* ── Un imprevisto por temporada, sin dados ── */
+function mejorarAzar(n){ const j = S.j, idx = j.mazo.map((e,i)=>i).filter(i=>!j.mazo[i].endsWith('+')); const el = barajar(idx).slice(0,n); el.forEach(i=>j.mazo[i]+='+'); return el.map(i=>nomCarta(j.mazo[i])); }
+const EVENTOS = [
+  {tit:'Una pala nueva a mitad de temporada', txt:'Tu marca te manda el modelo del año que viene.',
+   ops:[{t:'Estrenarla', d:'Pala de carbono (o 100€ si ya la tienes).', f:j=>{ if(!j.materiales.includes('carbono')){ j.materiales.push('carbono'); return '🏓 <b>Pala de carbono</b> para toda la carrera.'; } j.dinero += 100; return '💶 Ya la tenías: la vendes por <b>100€</b>.'; }},
+        {t:'Seguir con la mía', d:'Pules un golpe.', f:j=>`⬆️ Mejoras <b>${mejorarAzar(1).join('')||'nada'}</b>.`}]},
+  {tit:'Discusión en el vestuario', txt:'Perdisteis un punto de oro por no hablaros y tu pareja lo suelta delante de todos.',
+   ops:[{t:'Hablarlo a solas', d:'+15 química.', f:j=>{ j.pareja.quimica = clamp(j.pareja.quimica+15,0,100); return '🤝 Aclarado en el parking: <b>+15 química</b>.'; }},
+        {t:'Usar la rabia', d:'−10 química y un ¡Vamos!+ al mazo.', f:j=>{ j.pareja.quimica = clamp(j.pareja.quimica-10,0,100); if(j.mazo.length < MAZO_MAX) j.mazo.push('vamos+'); return '🔥 No os habláis, pero salís con fuego: <b>¡Vamos!+</b>.'; }}]},
+  {tit:'Sparring con la pareja número 1', txt:'Una semana de entrenamientos en los que te pasan por encima.',
+   ops:[{t:'Ir', d:'Pules dos golpes al azar.', f:()=>`🎓 Aprendes a golpe de paliza: <b>${mejorarAzar(2).join(', ')||'nada'}</b>.`},
+        {t:'Mejor un bolo pagado', d:'+120€.', f:j=>{ j.dinero += 120; return '💶 Clínic para socios: <b>+120€</b>.'; }}]},
+  {tit:'Vídeo-análisis', txt:'Un analista te ofrece desmontar tus últimos partidos golpe a golpe.',
+   ops:[{t:'Pagar 90€', d:'Fuera dos golpes básicos del mazo.', f:j=>{ if(j.dinero < 90) return 'No te alcanza. Otra vez será.'; j.dinero -= 90; let n = 0; for(const b of ['comunicacion','defensa','volea','bandeja']){ const k = j.mazo.indexOf(b); if(k >= 0 && n < 2 && j.mazo.length > MAZO_MIN){ j.mazo.splice(k,1); n++; } } return `📹 Fuera ${n} golpes de relleno.`; }},
+        {t:'Mirarlo por mi cuenta', d:'Nada cambia.', f:()=> '📺 Tres horas de vídeo y una conclusión: hay que globear mejor.'}]},
+  {tit:'Noche en la ciudad', txt:'Cena de gala del torneo y la ciudad entera de fiesta.',
+   ops:[{t:'Salir con tu pareja', d:'+20 química.', f:j=>{ j.pareja.quimica = clamp(j.pareja.quimica+20,0,100); return '🌙 Volvéis a las cinco: <b>+20 química</b>.'; }},
+        {t:'A dormir y a entrenar', d:'Pules un golpe.', f:()=>`😴 Diez horas de sueño y doble sesión: <b>${mejorarAzar(1).join('')||'nada'}</b>.`}]},
+];
+function abrirEvento(){ S.evento = { i: ri(0, EVENTOS.length-1), res:null }; S.pantalla = 'evento'; guardar(); render(); }
+function elegirEvento(k){ const E = S.evento; if(E.res) return; E.res = EVENTOS[E.i].ops[k].f(S.j); guardar(); render(); }
+function cerrarEvento(){ S.evento = null; mostrarSiguiente(); }
+
+/* ── Fin de temporada · retiro · guardado ── */
+function finTemporada(){ const j = S.j; S.finTemp = { n:j.temporadaN, rank:j.ranking, titulos:j.titulos.filter(t=>t.t===j.temporadaN).length }; S.pantalla = 'finTemporada'; guardar(); render(); }
+function siguienteTemporada(){
+  const j = S.j; j.edad++; j.temporadaN++;
+  if(j.edad >= 36) return retirarse();
+  S.finTemp = null; S.candidatos = candidatosPareja(j); S.pantalla = 'pareja'; guardar(); render();
+}
+function calcularLegado(j){
+  const n = t => j.titulos.filter(x=>x.tier===t).length, b = j.mejorRank || 9999;
+  let p = n('MJ')*40 + n('P1')*15 + n('P2')*6 + j.titulos.length*2 + Math.min(15, Math.round(j.orosG/3));
+  p += b<=1?60 : b<=5?40 : b<=10?28 : b<=25?18 : b<=60?10 : b<=150?5 : b<=400?2 : 0;
+  const R = p>=900?['LA CABRA 🐐','Cuando se hable del mejor de la historia, se dirá tu nombre.'] : p>=450?['LEYENDA','Una de las grandes carreras del pádel.']
+          : p>=200?['ENORME CARRERA','Estuviste arriba de verdad y ganaste cosas grandes.'] : p>=70?['CARRERA SÓLIDA','Viviste del pádel y levantaste trofeos.']
+          : p>=15?['PROFESIONAL','Fuiste profesional. Suena poco hasta que ves cuánta gente no llega.'] : ['LO INTENTASTE','No cuajó, pero estuviste ahí.'];
+  return {p, rango:R[0], txt:R[1]};
+}
+function retirarse(){ S.j.retirado = true; S.legado = calcularLegado(S.j); S.pantalla = 'retiro'; guardar(); render(); }
+function guardar(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({j:S.j, temporada:S.temporada, torneo:S.torneo, momento:S.momento, premio:S.premio, tienda:S.tienda, evento:S.evento, candidatos:S.candidatos, finT:S.finT, finTemp:S.finTemp, legado:S.legado, pantalla:S.pantalla})); }catch(e){} }
+function cargar(){ try{ const r = localStorage.getItem(SAVE_KEY); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
+function borrarSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+function continuarPartida(){ const d = cargar(); if(!d || !d.j){ S.pantalla = 'inicio'; return render(); } Object.assign(S, d, {msgs:[], pantallaPrevia:null}); if(!VISTAS[S.pantalla]) S.pantalla = 'temporada'; render(); }
+
+/* ═══════════════════════════════════════════════════════════════
+   PANTALLAS
+   ═══════════════════════════════════════════════════════════════ */
+const VISTAS = { inicio:vInicio, crear:vCrear, pareja:vPareja, temporada:vTemporada, torneo:vTorneo, momento:vMomento,
+  finTorneo:vFinTorneo, tienda:vTienda, evento:vEvento, finTemporada:vFinTemporada, retiro:vRetiro, mazo:vMazo };
+function render(){
+  const p = S.pantalla, misma = S.pantallaPrevia === p, y = window.scrollY || 0;
+  S.pantallaPrevia = p;
+  const app = $('#app'); app.classList.toggle('sin-entrada', misma);
+  app.innerHTML = topbar() + (VISTAS[p] || vInicio)();
+  window.scrollTo(0, misma ? y : 0);
+}
+function topbar(){
+  const j = S.j;
+  let h = `<div class="topbar"><div class="brand"><span class="pala"></span><b>LA CABRA</b><small>PUNTOS CLAVE</small></div>`;
+  if(j && !['inicio','crear'].includes(S.pantalla)){
+    h += `<div class="hud"><div><span>RANKING</span><b>${j.ranking ? '#'+j.ranking : '—'}</b></div>
+      <div><span>NIVEL</span><b style="color:var(--accent)">${nivelJugador(j).total.toFixed(1)}</b></div>
+      <div><span>MAZO</span><b>${j.mazo.length}/${MAZO_MAX}</b></div><div><span>BOLSILLO</span><b>${money(j.dinero)}</b></div></div>`;
+  }
+  return h + `</div>`;
+}
+function mensajes(){ const h = (S.msgs||[]).map(m=>`<div class="log">${m}</div>`).join(''); S.msgs = []; return h; }
+function fichaPais(cod){ return `<span class="cod">${esc(cod||'—')}</span>`; }
+function badgeTier(t){ return `<span class="tier ${TIERS[t].cls}">${TIERS[t].etq}</span>`; }
+function verMazo(){ S.volverMazo = S.pantalla; S.pantalla = 'mazo'; render(); }
+function cartaHTML(e, o){
+  o = o || {};
+  const {m, def} = parsearCarta(e);
+  const cls = ['carta', def.zona, o.motivo ? 'no' : '', o.sel ? 'sel' : '', o.grande ? 'grande' : ''].join(' ');
+  const acc = o.onclick ? (o.motivo ? 'disabled' : `onclick="${o.onclick}"`) : '';
+  return `<button class="${cls}" ${acc} aria-pressed="${!!o.sel}" aria-label="${esc(def.nom)}">
+    <span class="coste">${def.coste}</span><span class="zona-c">${ZONA_NOM[def.zona]}</span>
+    <span class="ic">${def.ic}</span><span class="nm">${def.nom}${m ? '<span class="mas">+</span>' : ''}</span>
+    <span class="ef">${def.txt(m)}</span>${o.motivo ? `<span class="ef" style="color:var(--danger);font-weight:800">${o.motivo}</span>` : ''}${o.nota ? `<span class="ef" style="color:var(--gold);font-weight:800">${o.nota}</span>` : ''}</button>`;
+}
+function pistaHTML(red){
+  const nuestra = red === 'yo';
+  return `<div class="pista"><span class="linea" style="top:14%"></span><span class="linea" style="bottom:14%"></span>
+    <div class="zona arriba" style="align-items:${nuestra?'flex-start':'flex-end'};padding:${nuestra?'5px 0 0':'0 0 7px'}"><span class="ficha el">R</span><span class="ficha el">R</span></div>
+    <div class="zona abajo" style="align-items:${nuestra?'flex-start':'flex-end'};padding:${nuestra?'7px 0 0':'0 0 5px'}"><span class="ficha yo">TÚ</span><span class="ficha yo">P</span></div>
+    <span class="etq-red ${nuestra?'nuestra':'suya'}" style="${nuestra?'bottom:7px':'top:7px'}">${nuestra?'LA RED ES VUESTRA':'LA RED ES SUYA'}</span></div>`;
+}
+function intencionHTML(I){
+  let t, d, def = false;
+  if(I.globo){ t = I.profundo ? '☂️ Globo profundo' : '☂️ Os globean'; d = I.profundo ? 'Os quitan la red pase lo que pase: <b>−3</b>.' : 'Si no jugáis un golpe que <b>mantenga la red</b>, os la quitan: <b>−3</b>.'; }
+  else if(I.chiquita){ t = '🐁 Chiquita a los pies'; d = `Vuestros golpes 🔺 cuestan <b>+1</b>. Ataque <b>${I.ataque}</b>.`; def = true; }
+  else if(I.cob){ t = `${I.ic} ${I.nom}`; d = `Frenan <b>${I.cob}</b> de lo que empujéis.${I.ataque ? ` Ataque <b>${I.ataque}</b>.` : ''}`; def = true; }
+  else { t = `${I.ic} ${I.nom}`; d = `Ataque <b>${I.ataque}</b>${I.ignoraCob ? ', <b>ignora vuestra defensa</b>' : ''}.${I.bandeja ? ' Con bandeja: <b>vuestro globo normal no entra</b>.' : ''}`; }
+  return `<div class="intencion ${def?'def':''}"><div style="min-width:0"><b>${t}</b><span>${d}</span></div><span class="cuando">LO QUE HARÁN</span></div>`;
+}
+
+/* ── INICIO ── */
+function vInicio(){
+  const save = cargar();
+  return `<div class="fade"><div class="card event-hero">
+    <div class="eyebrow">CARRERA DE PÁDEL · MODO RÁPIDO</div>
+    <div class="title-xl" style="margin:6px 0 8px">TÚ JUEGAS<br>LO QUE IMPORTA</div>
+    <p class="sub" style="margin:0">Los partidos se simulan en un segundo. Cuando algo se decide —la semifinal, la final o una bola de partido en contra— te toca a ti: <b>una mano de golpes, una decisión</b>.</p></div>
+  <div class="card"><div class="eyebrow">CÓMO SE JUEGA</div><div style="height:6px"></div>
+    <div class="li"><span style="font-size:18px">⚡</span><div class="g"><b>Rápido</b><span>Un torneo por trimestre. Un toque y se juegan las primeras rondas.</span></div></div>
+    <div class="li"><span style="font-size:18px">🃏</span><div class="g"><b>Puntos clave a una mano</b><span>Eliges tus golpes, ves antes de jugar si llegáis y listo.</span></div></div>
+    <div class="li"><span style="font-size:18px">🕸️</span><div class="g"><b>La red manda</b><span>Con la red, golpes 🔺. Abajo, 🔻 para defender y el globo para subir.</span></div></div>
+    <div class="li"><span style="font-size:18px">📈</span><div class="g"><b>Tu nivel se construye</b><span>Mazo, pareja, material y edad. Del FIP Promises a los Majors.</span></div></div></div>
+  ${save && save.j && !save.j.retirado
+    ? `<button class="btn" onclick="continuarPartida()">CONTINUAR · ${esc(save.j.nombre.toUpperCase())} · ${save.j.ranking?'#'+save.j.ranking:'SIN RANKING'}</button><div style="height:8px"></div>
+       ${S.pidiendo ? `<div class="log bad">Se borra la carrera de <b>${esc(save.j.nombre)}</b>.</div><div class="row"><button class="btn danger sm" onclick="borrarSave();S.pidiendo=false;S.pantalla='crear';render()">SÍ, EMPEZAR DE CERO</button><button class="btn ghost sm" onclick="S.pidiendo=false;render()">CANCELAR</button></div>`
+       : `<button class="btn ghost" onclick="S.pidiendo=true;render()">NUEVA CARRERA</button>`}`
+    : `<button class="btn" onclick="S.pantalla='crear';render()">EMPEZAR MI CARRERA</button>`}
+  </div>`;
+}
+
+/* ── CREAR ── */
+function vCrear(){
+  return `<div class="fade"><div class="card"><div class="eyebrow">TU JUGADOR</div>
+    <label class="f">Circuito</label><div class="g2">
+      <button class="opt ${CFG.genero==='M'?'on':''}" style="justify-content:center" onclick="CFG.genero='M';render()"><span class="t">MASCULINO</span></button>
+      <button class="opt ${CFG.genero==='F'?'on':''}" style="justify-content:center" onclick="CFG.genero='F';render()"><span class="t">FEMENINO</span></button></div>
+    <label class="f" for="fnom">Nombre</label>
+    <input type="text" id="fnom" maxlength="24" value="${esc(CFG.nombre)}" placeholder="${CFG.genero==='F'?'Ej: Delfina Ruiz':'Ej: Martín Belluati'}" oninput="CFG.nombre=this.value">
+    ${CFG.error ? `<p style="color:var(--danger);font-size:12.5px;font-weight:700;margin:6px 0 0">${CFG.error}</p>` : ''}
+    <label class="f" for="fpais">País</label>
+    <select id="fpais" onchange="CFG.pais=this.value">${PAISES.slice().sort((a,b)=>a.nom.localeCompare(b.nom)).map(p=>`<option value="${p.id}" ${p.id===CFG.pais?'selected':''}>${p.nom}</option>`).join('')}</select>
+    <label class="f">Lado de la pista</label>
+    <div class="g2">${Object.keys(POSICIONES).map(k=>`<button class="opt ${CFG.posicion===k?'on':''}" onclick="CFG.posicion='${k}';render()"><span class="ic">${POSICIONES[k].ic}</span><span><span class="t">${POSICIONES[k].nom}</span><span class="d">${POSICIONES[k].d}</span></span></button>`).join('')}</div></div>
+  <div class="card"><div class="eyebrow">ESTILO · TUS 8 GOLPES INICIALES</div><div style="height:8px"></div>
+    ${Object.keys(ESTILOS).map(k=>`<button class="opt ${CFG.estilo===k?'on':''}" onclick="CFG.estilo='${k}';render()"><span class="ic">${ESTILOS[k].ic}</span><span><span class="t">${ESTILOS[k].nom}</span><span class="d">${ESTILOS[k].d}</span></span></button>`).join('')}
+    <div class="mano">${mazoInicial(CFG.estilo, CFG.posicion).map(e=>cartaHTML(e)).join('')}</div></div>
+  <button class="btn" onclick="crearYEmpezar()">ELEGIR PAREJA</button><div style="height:8px"></div>
+  <button class="btn ghost" onclick="S.pantalla='inicio';render()">VOLVER</button></div>`;
+}
+
+/* ── PAREJA ── */
+function vPareja(){
+  const j = S.j, actual = j.pareja;
+  const ficha = (p, onclick, etq) => { const bien = encaja(j.estilo, p.estilo);
+    return `<button class="opt" onclick="${onclick}"><span class="ic">${ESTILOS[p.estilo].ic}</span><span style="flex:1;min-width:0">
+      <span class="t">${fichaPais(p.flag)} ${nomPareja(p)} ${etq ? `<span class="pill gold">${etq}</span>` : ''}</span>
+      <span class="d">${ESTILOS[p.estilo].nom} · ${'★'.repeat(p.calidad)}${'☆'.repeat(5-p.calidad)} · química ${p.quimica}</span>
+      <span class="d" style="margin-top:4px"><b style="color:var(--accent)">${TIPOS_PAREJA[p.estilo].pasNom}:</b> ${TIPOS_PAREJA[p.estilo].pasTxt} Trae ${p.cartas.map(nomCarta).join(', ')}.</span>
+      <span class="d" style="font-weight:800;color:${bien?'var(--bien)':'var(--danger)'}">${bien?'🧩 Encaja contigo: +1 de nivel':'⚠️ Jugáis igual: −0,8 de nivel'}</span></span></button>`; };
+  return `<div class="fade"><div class="card"><div class="eyebrow">TEMPORADA ${j.temporadaN} · ${j.edad} AÑOS</div>
+    <div class="title-lg" style="margin:4px 0 4px">¿Con quién juegas?</div>
+    <p class="muted" style="margin:0">Las estrellas y el encaje suben tu nivel. Con química 30 aprendéis el <b>Cruce</b>, y la química no se pierde si seguís juntos.</p></div>
+  ${actual ? `<div class="card"><div class="eyebrow">SEGUIR JUNTOS</div><div style="height:8px"></div>${ficha(actual, "elegirPareja('mantener')", 'QUÍMICA '+actual.quimica)}</div>` : ''}
+  <div class="card"><div class="eyebrow">${actual ? 'O CAMBIAR' : 'QUIÉN ESTÁ LIBRE'}</div><div style="height:8px"></div>${S.candidatos.map((p,i)=>ficha(p, `elegirPareja(${i})`)).join('')}</div></div>`;
+}
+
+/* ── TEMPORADA ── */
+function vTemporada(){
+  const j = S.j, T = S.temporada, N = nivelJugador(j);
+  return `<div class="fade">${mensajes()}
+  <div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+      <div><div class="eyebrow">TEMPORADA ${T.n} · ${j.edad} AÑOS</div><div class="title-lg" style="margin-top:3px">${TRIMESTRES[T.trimestre]}</div></div>
+      <span class="pill acc">${j.titulos.length} TÍTULO${j.titulos.length===1?'':'S'}</span></div>
+    <div class="ruta">${[0,1,2,3].map(i=>`<i class="${i<T.trimestre?'hecha':i===T.trimestre?'ahora':''}"></i>`).join('')}</div>
+    <div class="hr"></div>
+    <div class="eyebrow">TU NIVEL · ${N.total.toFixed(1)}</div>
+    <div class="desglose"><span>Base <b>0.5</b></span><span>Edad <b>${N.edad>=0?'+':''}${N.edad.toFixed(1)}</b></span><span>Mazo <b>+${N.mazo.toFixed(1)}</b></span><span>Pareja <b>${N.pareja>=0?'+':''}${N.pareja.toFixed(1)}</b></span><span>Material <b>+${N.material.toFixed(1)}</b></span></div>
+    <div class="li" style="border:0;padding:9px 0 0"><span style="font-size:20px">${ESTILOS[j.pareja.estilo].ic}</span>
+      <div class="g"><b>${nomPareja(j.pareja)} · ${'★'.repeat(j.pareja.calidad)}</b><span>Química ${j.pareja.quimica}${j.pareja.quimica>=30?' · sabéis el Cruce':' · el Cruce llega con 30'}</span></div></div></div>
+  <div class="card"><div class="eyebrow">¿QUÉ TORNEO JUGÁIS?</div><div style="height:8px"></div>
+    ${T.opciones.map((op,i)=>{ const TT = TIERS[op.tier], gap = N.total - TT.nivel;
+      const dif = gap >= 2 ? ['var(--bien)','Asequible'] : gap >= -.5 ? ['var(--gold)','Parejo'] : ['var(--danger)','Muy duro'];
+      return `<button class="opt" onclick="elegirTorneo(${i})"><span class="ic">${op.tier==='MJ'?'🏛️':'🎾'}</span><span style="flex:1;min-width:0">
+        <span class="t">${esc(op.nom)} ${badgeTier(op.tier)}</span>
+        <span class="d" style="font-weight:800;color:${op.wildcard?'var(--gold)':'var(--text-2)'}">${op.etiqueta}</span>
+        <span class="d">${TT.rondas} rondas · campeón +${TT.pts[0]} pts · <b style="color:${dif[0]}">${dif[1]}</b> (rivales nivel ${TT.nivel.toFixed(1)})</span></span></button>`; }).join('')}</div>
+  <button class="btn ghost sm" onclick="verMazo()">🃏 VER MAZO</button></div>`;
+}
+
+/* ── TORNEO ── */
+function vTorneo(){
+  const TO = S.torneo, T = TIERS[TO.tier], N = nivelJugador(S.j);
+  return `<div class="fade">${mensajes()}
+  <div class="card ${TO.tier==='MJ'?'oro-hero':'event-hero'}"><div class="eyebrow">${T.nom}${TO.wildcard?' · CON INVITACIÓN':''}</div>
+    <div class="title-lg" style="margin:5px 0 6px">${esc(TO.nom)}</div>
+    <p class="muted" style="margin:0">Tu nivel <b>${N.total.toFixed(1)}</b> · rivales de nivel ${T.nivel.toFixed(1)} a ${(T.nivel+(TO.rondas-1)*.4).toFixed(1)} · campeón +${T.pts[0]} pts</p></div>
+  <div class="card"><div class="eyebrow">EL CUADRO</div>
+    ${NOM_RONDA[TO.rondas].map((r,i)=>{ const clave = i >= TO.rondas-2;
+      return `<div class="ronda"><b style="font-size:13px">${r}</b><span class="muted">${clave ? '🃏 se decide en un punto clave' : '⚡ simulada'}</span></div>`; }).join('')}
+    <p class="muted" style="margin:8px 0 0">Si una ronda simulada se os tuerce, tendréis una <b>bola de partido en contra</b> para salvarla.</p></div>
+  <button class="btn" onclick="jugarRonda()">JUGAR EL TORNEO</button><div style="height:8px"></div>
+  <button class="btn ghost sm" onclick="verMazo()">🃏 VER MAZO</button></div>`;
+}
+
+/* ── EL PUNTO CLAVE ── */
+function vMomento(){
+  const M = S.momento, TO = S.torneo, T = TIPO_MOMENTO[M.tipo], R = M.rival, res = M.resultado;
+  const ev = res ? res.ev : evaluarJugada(M, M.sel);
+  const escala = Math.max(M.objetivo * 1.6, 6);
+  const previos = TO.partidos.map(p=>`<span class="pill ${p.gano?'acc':'mal'}" style="margin:0 4px 4px 0">${p.gano?'✅':'❌'} ${p.ronda} · ${p.marcador}</span>`).join('');
+  let h = `<div class="fade">
+  <div class="card ${M.esOro?'oro-hero':'event-hero'} ${M.tipo==='rescate'?'mal':''}" style="padding:12px">
+    <div class="eyebrow">${esc(TO.nom)} · ${NOM_RONDA[TO.rondas][TO.ronda]}</div>
+    <div class="title-lg" style="margin:4px 0 2px">${M.esOro?'🥇 ':''}${T.titulo}</div>
+    <p class="muted" style="margin:0">${T.sit}</p>
+    <div class="li" style="border:0;padding:8px 0 0">${fichaPais(R.flag)}<div class="g"><b>${esc(R.nombre)} / ${esc(R.nombre2)}</b><span>Juegan a ${R.arq.nom} · nivel ${R.nivel.toFixed(1)}</span></div></div>
+    ${previos ? `<div style="margin-top:7px">${previos}</div>` : ''}
+    ${pistaHTML(M.red)}</div>
+  ${intencionHTML(M.intencion)}`;
+
+  if(res){
+    const txtGana = {semifinal:'Cerráis la semifinal: <b>¡a la final!</b>', final: gx('Punto de oro para vosotros: <b>¡CAMPEONES!</b>','Punto de oro para vosotras: <b>¡CAMPEONAS!</b>'), rescate:'Salváis la bola de partido y <b>lo dais vuelta</b>.'}[M.tipo];
+    const txtPierde = {semifinal:'Se os escapa la semifinal.', final:'El punto de oro es suyo. <b>Finalistas.</b>', rescate:'No hay remontada: <b>fuera del torneo</b>.'}[M.tipo];
+    h += `<div class="card ${res.gana?'event-hero':'event-hero mal'}" style="margin-top:10px">
+      <div class="title-xl" style="margin:2px 0 6px">${res.gana?'✅ PUNTO VUESTRO':'❌ PUNTO SUYO'}</div>
+      <p class="sub" style="margin:0">${res.gana ? txtGana : txtPierde}</p>
+      <div class="desglose"><span>Empuje <b>+${ev.empuje}</b></span><span>Su ataque que pasa <b>−${ev.pasa}</b></span>${ev.pierdeRed?'<span>Red perdida <b>−3</b></span>':''}<span>Total <b>${ev.total}</b> de ${M.objetivo}</span></div></div>
+      <div class="mano momento">${M.sel.map(i=>cartaHTML(M.mano[i], {sel:true})).join('')}</div>
+      <div style="height:10px"></div><button class="btn" onclick="trasMomento()">CONTINUAR</button></div>`;
+    return h;
+  }
+
+  const sinSalida = M.cambios > 0 && M.sel.length === 0 && mejorTotal(M) < M.objetivo;
+  h += `<div class="prevision ${ev.valida ? (ev.gana ? 'gana' : 'pierde') : 'pierde'}">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+      <b style="font-size:14px">${!M.sel.length ? `Necesitáis +${M.objetivo} para ganar el punto` : ev.valida ? (ev.gana ? '✅ Con esto ganáis el punto' : `Os quedáis en ${ev.total} de ${M.objetivo}`) : '⚠️ Esa jugada no vale'}</b>
+      <span class="tabular" style="font-weight:900">⚡ ${ev.coste}/${ev.energia}</span></div>
+    <div class="prev-barra"><i style="width:${clamp(ev.total/escala*100,0,100)}%;${ev.gana?'':'background:var(--gold)'}"></i><u style="left:${M.objetivo/escala*100}%"></u></div>
+    <div class="desglose"><span>Empuje <b>+${ev.empuje}</b>${ev.defensaRival?` (frenan ${ev.defensaRival})`:''}</span><span>Su ataque <b>${ev.ataque}</b> · paráis <b>${ev.cob}</b> · pasa <b>−${ev.pasa}</b></span>${ev.pierdeRed?'<span style="color:var(--danger)">Os quitan la red <b>−3</b></span>':''}${ev.subimos?'<span style="color:var(--bien)">Subís a la red <b>+1</b></span>':''}</div>
+    ${ev.motivo ? `<div style="color:var(--danger);font-weight:800;font-size:12.5px;margin-top:5px">${ev.motivo}</div>` : ''}
+    ${sinSalida ? `<div style="color:var(--gold);font-weight:800;font-size:12.5px;margin-top:5px">💡 Con esta mano no llegáis. Probad a cambiarla.</div>` : ''}</div>
+  <div class="mano momento">${M.mano.map((e,i)=>{ const z = parsearCarta(e).def.zona;
+    const nota = z==='fondo' && M.red==='yo' ? 'Solo defendiendo' : z==='red' && M.red==='el' ? 'Necesitáis subir con globo' : '';
+    return cartaHTML(e, {onclick:`toggleCarta(${i})`, sel:M.sel.includes(i), nota}); }).join('')}</div>
+  <div style="height:10px"></div>
+  <button class="btn" ${ev.valida?'':'disabled'} onclick="jugarMomento()">${M.sel.length ? 'JUGAR EL PUNTO' : 'JUGAR SIN GOLPES'}</button>
+  ${M.cambios > 0 ? `<div style="height:8px"></div><button class="btn ghost sm" onclick="cambiarMano()">🔄 CAMBIAR MANO${tieneMaterial('toalla')?'':' (UN GOLPE MENOS)'}</button>` : ''}
+  </div>`;
+  return h;
+}
+
+/* ── FIN DE TORNEO Y PREMIO ── */
+function listaMazo(onclick, filtro, verMejora){
+  const j = S.j;
+  return `<div class="mano">${j.mazo.map((e,i)=>({e,i})).filter(filtro||(()=>true)).map(x=>cartaHTML(verMejora ? x.e+'+' : x.e, {onclick:`${onclick}(${x.i})`})).join('')}</div>`;
+}
+function vFinTorneo(){
+  const F = S.finT, TO = S.torneo, j = S.j, P = S.premio;
+  if(P.sub === 'draft') return `<div class="fade"><div class="card"><div class="eyebrow">GOLPE NUEVO</div><p class="muted" style="margin:5px 0 0">Elige uno${j.mazo.length>=MAZO_MAX?': tu mazo está lleno, sustituirá a otro':''}.</p></div>
+    <div class="mano">${P.cartas.map((e,i)=>cartaHTML(e, {onclick:`tomarCarta(${i})`, grande:true})).join('')}</div><div style="height:10px"></div>
+    <button class="btn ghost" onclick="avanzarTemporada()">NO COGER NINGUNO</button></div>`;
+  if(P.sub === 'sustituir') return `<div class="fade"><div class="card"><div class="eyebrow">MAZO LLENO · ¿POR CUÁL LO CAMBIAS?</div><div class="mano">${cartaHTML(P.nueva, {sel:true})}</div></div>
+    ${listaMazo('sustituirCarta')}<div style="height:10px"></div><button class="btn ghost" onclick="avanzarTemporada()">MEJOR NO</button></div>`;
+  if(P.sub === 'mejorar') return `<div class="fade"><div class="card"><div class="eyebrow">PULIR UN GOLPE</div><p class="muted" style="margin:5px 0 0">Así quedaría cada uno. Toca el que quieras pulir.</p></div>
+    ${listaMazo('mejorarCarta', x=>!x.e.endsWith('+'), true)}<div style="height:10px"></div><button class="btn ghost" onclick="S.premio.sub=null;render()">VOLVER</button></div>`;
+  if(P.sub === 'quitar') return `<div class="fade"><div class="card"><div class="eyebrow">LIMPIAR EL MAZO</div></div>${listaMazo('quitarCarta')}
+    <div style="height:10px"></div><button class="btn ghost" onclick="S.premio.sub=null;render()">VOLVER</button></div>`;
+  const delta = F.antes && j.ranking ? F.antes - j.ranking : 0;
+  return `<div class="fade"><div class="card ${F.campeon?'oro-hero':''}"><div class="eyebrow">${esc(TO.nom)}</div>
+    <div class="title-xl" style="margin:5px 0 8px">${F.campeon?'🏆 ':''}${F.ronda}</div>
+    <div class="g2"><div><div class="eyebrow">PUNTOS</div><div class="title-lg" style="color:var(--accent)">+${F.pts}</div></div>
+      <div><div class="eyebrow">RANKING</div><div class="title-lg">${j.ranking?'#'+j.ranking:'—'} ${delta?`<span style="font-size:12px;color:${delta>0?'var(--accent)':'var(--danger)'}">${delta>0?'▲':'▼'}${Math.abs(delta)}</span>`:''}</div></div></div>
+    <div class="hr"></div>${TO.partidos.map(p=>`<div class="ronda"><b style="font-size:13px">${p.gano?'✅':'❌'} ${p.ronda}</b><span class="muted" style="font-size:12px">${p.tipo?'🃏 ':''}${esc(p.rival.nombre.split(' ').slice(-1)[0])} / ${esc(p.rival.nombre2.split(' ').slice(-1)[0])}</span><span class="res">${p.marcador}</span></div>`).join('')}</div>
+  <div class="card"><div class="eyebrow">ELIGE UN PREMIO · +${money(F.prem)} YA COBRADOS</div><div style="height:8px"></div>
+    ${P.opciones.map(t=>`<button class="opt" onclick="elegirPremio('${t}')"><span class="ic">${PREMIOS[t].ic}</span><span><span class="t">${PREMIOS[t].t}</span><span class="d">${PREMIOS[t].d}</span></span></button>`).join('')}</div></div>`;
+}
+
+/* ── PATROCINADOR ── */
+function vTienda(){
+  const T = S.tienda, j = S.j, lleno = j.mazo.length >= MAZO_MAX;
+  if(T.sub === 'quitar') return `<div class="fade"><div class="card"><div class="eyebrow">QUITAR UN GOLPE</div></div>${listaMazo('quitarCarta')}</div>`;
+  return `<div class="fade">${mensajes()}<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><div class="eyebrow">PATROCINADOR</div><span class="pill gold">${money(j.dinero)}</span></div></div>
+    <div class="card"><div class="eyebrow">GOLPES${lleno?' · MAZO LLENO':''}</div><div class="mano">${T.cartas.map((it,i)=>`<div>${cartaHTML(it.e, {onclick:`comprarCarta(${i})`, motivo: it.vendida?'Comprado':lleno?'Mazo lleno':j.dinero<it.precio?'Sin dinero':null})}
+      <div class="center" style="font-size:12px;font-weight:800;margin-top:4px;color:var(--gold)">${it.vendida?'✓':money(it.precio)}</div></div>`).join('')}</div></div>
+    <div class="card"><div class="eyebrow">MATERIAL · TODA LA CARRERA</div><div style="height:8px"></div>${T.materiales.length ? T.materiales.map((it,i)=>{ const M = MATERIALES[it.id], ok = !it.vendida && j.dinero >= M.precio;
+      return `<button class="opt ${ok?'':'lock'}" ${ok?`onclick="comprarMaterial(${i})"`:'disabled'}><span class="ic">${M.ic}</span><span><span class="t">${M.nom} · ${it.vendida?'✓':money(M.precio)}</span><span class="d">${M.txt}</span></span></button>`; }).join('') : '<p class="muted">Ya tienes todo el material.</p>'}</div>
+    <button class="btn" onclick="salirTienda()">SEGUIR LA TEMPORADA</button><div style="height:8px"></div>
+    <button class="btn ghost sm" ${T.quitarUsado||j.dinero<60||j.mazo.length<=MAZO_MIN?'disabled':'onclick="comprarQuitar()"'}>✂️ QUITAR UN GOLPE · 60€</button></div>`;
+}
+
+/* ── IMPREVISTO ── */
+function vEvento(){
+  const E = S.evento, D = EVENTOS[E.i];
+  return `<div class="fade"><div class="card event-hero"><div class="eyebrow">IMPREVISTO</div><div class="title-lg" style="margin:5px 0 6px">${D.tit}</div><p class="sub" style="margin:0">${E.res || D.txt}</p></div>
+    ${E.res ? `<button class="btn" onclick="cerrarEvento()">SEGUIR</button>` : D.ops.map((o,k)=>`<button class="opt" onclick="elegirEvento(${k})"><span class="ic">${k?'②':'①'}</span><span><span class="t">${o.t}</span><span class="d">${o.d}</span></span></button>`).join('')}</div>`;
+}
+
+/* ── FIN DE TEMPORADA · RETIRO · MAZO ── */
+function vFinTemporada(){
+  const F = S.finTemp, j = S.j;
+  return `<div class="fade"><div class="card event-hero"><div class="eyebrow">FIN DE LA TEMPORADA ${F.n}</div>
+    <div class="title-xl" style="margin:5px 0 8px">${j.ranking?'#'+j.ranking+' DEL MUNDO':'SIN RANKING'}</div>
+    <div class="g2"><div><div class="eyebrow">TÍTULOS DEL AÑO</div><div class="title-lg">${F.titulos}</div></div><div><div class="eyebrow">MEJOR PUESTO</div><div class="title-lg">${j.mejorRank?'#'+j.mejorRank:'—'}</div></div></div></div>
+    <button class="btn" onclick="siguienteTemporada()">${j.edad+1>=36?'ÚLTIMA: RETIRARME':'SIGUIENTE TEMPORADA'}</button><div style="height:8px"></div>
+    <button class="btn ghost sm" onclick="retirarse()">RETIRARME AHORA</button></div>`;
+}
+function vRetiro(){
+  const j = S.j, L = S.legado || calcularLegado(j);
+  return `<div class="fade"><div class="card oro-hero"><div class="eyebrow">SE ACABÓ · ${j.edad} AÑOS</div><div class="title-xl" style="margin:5px 0 8px">${L.rango}</div><p class="sub" style="margin:0">${L.txt}</p><div class="hr"></div>
+    <div class="g2"><div><div class="eyebrow">MEJOR RANKING</div><div class="title-lg">${j.mejorRank?'#'+j.mejorRank:'—'}</div></div><div><div class="eyebrow">TÍTULOS</div><div class="title-lg">${j.titulos.length}</div></div>
+      <div><div class="eyebrow">PARTIDOS</div><div class="title-lg">${j.pg}-${j.pp}</div></div><div><div class="eyebrow">PUNTOS DE ORO</div><div class="title-lg">${j.orosG}/${j.orosJ}</div></div></div></div>
+    ${j.titulos.length ? `<div class="card"><div class="eyebrow">VITRINA</div>${j.titulos.slice().reverse().slice(0,12).map(t=>`<div class="li">${badgeTier(t.tier)}<div class="g"><b>${esc(t.nom)}</b><span>Temporada ${t.t} · ${t.edad} años</span></div></div>`).join('')}</div>` : ''}
+    <button class="btn" onclick="borrarSave();S={pantalla:'crear',j:null,msgs:[],pantallaPrevia:null};render()">EMPEZAR OTRA CARRERA</button></div>`;
+}
+function vMazo(){
+  const j = S.j, orden = z => ['red','fondo','libre'].indexOf(CARTAS[parsearCarta(z).id].zona);
+  const extra = (j.pareja ? j.pareja.cartas : []).concat(j.pareja && j.pareja.quimica>=30 ? ['cruce'] : []);
+  return `<div class="fade"><div class="card"><div class="eyebrow">TU MAZO · ${j.mazo.length}/${MAZO_MAX}</div>
+    <p class="muted" style="margin:5px 0 0">En cada punto clave robas ${MANO + (pasiva('profe')?1:0) + (tieneMaterial('libreta')?1:0)} golpes de aquí, más los de tu pareja.</p></div>
+    <div class="mano">${j.mazo.slice().sort((a,b)=>orden(a)-orden(b)).map(e=>cartaHTML(e)).join('')}</div>
+    ${extra.length ? `<div class="card" style="margin-top:10px"><div class="eyebrow">LOS DE TU PAREJA</div><div class="mano">${extra.map(e=>cartaHTML(e)).join('')}</div></div>` : ''}
+    <div style="height:10px"></div><button class="btn" onclick="S.pantalla=S.volverMazo||'temporada';render()">VOLVER</button></div>`;
+}
+
+/* ─────────── ARRANQUE ─────────── */
+S = { pantalla:'inicio', j:null, msgs:[], pantallaPrevia:null };
+render();
+</script>
+</body>
+</html>

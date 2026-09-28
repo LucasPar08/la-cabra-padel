@@ -1,0 +1,23 @@
+
+<section id="juego" hidden aria-label="Partido en la pista">
+  <canvas id="lienzo"></canvas>
+  <div id="hudP" class="marcador-tv">
+    <div class="mt-fila yo"><span class="saca" id="sacaYo"></span><span class="mt-nom" id="nomYo">TÚ</span><span class="mt-sets" id="setsYo"></span><span class="jg" id="jgYo">0</span><span class="pt" id="ptYo">0</span></div>
+    <div class="mt-fila el"><span class="saca" id="sacaEl"></span><span class="mt-nom" id="nomEl">ELLOS</span><span class="mt-sets" id="setsEl"></span><span class="jg" id="jgEl">0</span><span class="pt" id="ptEl">0</span></div>
+  </div>
+  <div id="statP" hidden></div>
+  <div id="rotuloP"></div>
+  <div id="avisoP"></div>
+  <div id="ayudaP" hidden></div>
+  <div id="controlesP">
+    <div id="joyP"><div id="joyKnobP"></div></div>
+    <button class="accion" id="bDejada" data-accion="dejada" aria-label="Dejada"><i>🪶</i>DEJADA</button>
+    <button class="accion" id="bGlobo" data-accion="globo" aria-label="Globo"><i>☂️</i>GLOBO</button>
+    <button class="accion" id="bRemate" data-accion="remate" aria-label="Remate"><i>💥</i>REMATE</button>
+    <button class="accion" id="bGolpe" data-accion="golpe" aria-label="Golpe"><i>🎾</i>GOLPE</button>
+  </div>
+  <div id="teclasP">Mover <kbd>WASD</kbd> · Golpe <kbd>J</kbd> <kbd>Espacio</kbd> · Globo <kbd>K</kbd> · Remate <kbd>L</kbd> · Dejada <kbd>I</kbd> · Pausa <kbd>P</kbd></div>
+  <button id="bPausaP" aria-label="Pausa">II</button>
+  <div id="pausaP" hidden><div class="caja"></div></div>
+  <div id="editorP" hidden><div class="caja"></div></div>
+</section>

@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LA CABRA · Pádel — Golpe a golpe</title>
+<meta name="description" content="Juego de pádel por cartas: juegas cada punto clave golpe a golpe, peleas la red, eliges pareja y construyes tu mazo de golpes del FIP Promises a los Majors.">
+<meta name="theme-color" content="#08191C">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2308191C'/%3E%3Crect x='14' y='11' width='36' height='42' rx='17' fill='%23DCF54A'/%3E%3C/svg%3E">
+<style>
+:root{
+  /* ── Identidad ── El pádel se juega sobre césped artificial verde entre
+     paredes de cristal. El fondo sale de ahí, no de un gris neutro. */
+  --page-bg:#08191C;
+  --card-bg:#0E2A2E;
+  --card-bg-2:#143439;
+  --border:rgba(110,215,195,.16);
+  --border-soft:rgba(110,215,195,.09);
+
+  /* ── Texto ── Tres niveles, ninguno a máximo contraste: un blanco puro
+     sobre casi negro produce halo y cansa a los diez minutos. */
+  --text:#DEEDE9;
+  --text-2:#AECAC5;
+  --muted:#87A8A3;
+
+  /* ── Acento ── Solo para lo interactivo. */
+  --accent:#22D3A5;
+  --accent-dim:#0E9B78;
+  --sobre-accent:#03211A;
+
+  /* ── Tipos de pista ── Tres familias de tono bien separadas entre sí y del
+     acento, para que una pista nunca se confunda con un botón. Siempre van
+     con icono y palabra: el color no es el único canal. */
+  --indoor:#9B87FF;      /* bajo techo · violeta */
+  --exterior:#F0A03C;    /* al aire libre · naranja sol */
+  --altura:#4FC3F7;      /* en altura · azul cielo fino */
+
+  /* ── Categorías ── Escalera de prestigio: de gris a oro. */
+  --cat-fip:#93A7BC;
+  --cat-star:#3AD98F;
+  --cat-plat:#29B6F6;
+  --cat-p1:#F075C0;
+  --cat-major:#F5C542;
+
+  /* ── Semánticos ── Independientes del acento. */
+  --bien:#43CE84;
+  --alerta:#F5C542;
+  --danger:#FF6B6B;
+  --gold:#F5C542;
+
+  --pelota:#DCF54A;
+  --radius:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--page-bg);
+  color:var(--text);
+  font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:15.5px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:40px;
+}
+#app{max-width:520px;margin:0 auto;padding:0 14px}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
+h1,h2,h3,h4{margin:0;font-weight:800;letter-spacing:-.02em}
+
+/* ── header ── */
+.topbar{position:sticky;top:0;z-index:30;background:rgba(5,18,20,.94);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);margin:0 -14px 12px;padding:9px 14px}
+.brand{display:flex;align-items:center;gap:8px;justify-content:center}
+.brand b{font-size:15px;font-weight:900;letter-spacing:.14em}
+/* La pala, no la pelota: es lo que distingue este deporte de un vistazo */
+.brand .pala{width:12px;height:16px;border-radius:6px 6px 5px 5px;background:var(--pelota);flex:none;
+  box-shadow:inset -2px -1px 0 rgba(0,0,0,.22)}
+.brand small{color:var(--muted);font-size:11px;letter-spacing:.2em;font-weight:700}
+
+/* ── hud ── */
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.hud div{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:5px 4px;text-align:center;min-width:0}
+.hud span{display:block;font-size:11px;letter-spacing:.06em;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hud b{display:block;font-size:14px;font-weight:800;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── cards ── */
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:11px}
+.card.pad0{padding:0;overflow:hidden}
+.eyebrow{font-size:11px;letter-spacing:.14em;color:var(--text-2);font-weight:800;text-transform:uppercase}
+.title-xl{font-size:29px;line-height:1.05;font-weight:900;letter-spacing:-.035em}
+.title-lg{font-size:20px;font-weight:900;letter-spacing:-.02em}
+.sub{color:var(--text-2);font-size:14.5px;line-height:1.5}
+.muted{color:var(--muted);font-size:13px;line-height:1.5}
+.hr{height:1px;background:var(--border-soft);margin:12px 0}
+
+/* ── botones ── */
+.btn{display:block;width:100%;background:var(--accent);color:var(--sobre-accent);border:0;border-radius:11px;
+  padding:13px;font-weight:900;letter-spacing:.05em;font-size:14px;text-align:center;transition:.12s}
+.btn:active{transform:scale(.985)}
+.btn:disabled{opacity:.32;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn.ghost:disabled{opacity:.3}
+.btn.sm{padding:9px;font-size:12.5px;border-radius:9px;min-height:44px}
+.btn.danger{background:rgba(239,68,68,.13);color:#FCA5A5;border:1px solid rgba(239,68,68,.32)}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+
+/* ── selects / inputs ── */
+label.f{display:block;font-size:11px;letter-spacing:.12em;color:var(--muted);font-weight:800;margin:12px 0 5px;text-transform:uppercase}
+input[type=text],select{width:100%;min-height:44px;background:var(--card-bg-2);border:1px solid var(--border);color:var(--text);
+  border-radius:10px;padding:11px;font-family:inherit;font-size:15px;outline:none;appearance:none}
+input[type=text]:focus,select:focus{border-color:rgba(34,211,165,.45)}
+
+/* ── opciones (chips grandes) ── */
+.opt{display:flex;gap:11px;align-items:flex-start;min-height:44px;background:var(--card-bg-2);border:1px solid var(--border);
+  border-radius:12px;padding:11px 12px;margin-bottom:7px;width:100%;text-align:left;transition:.12s}
+.opt:active{transform:scale(.99)}
+.opt.on{border-color:rgba(34,211,165,.5);background:rgba(34,211,165,.09)}
+.opt .ic{font-size:20px;line-height:1.2;flex:none;width:24px;text-align:center}
+.opt>span:not(.ic):not(.tier){min-width:0}
+.opt .t{display:block;font-weight:800;font-size:14px}
+.opt .d{display:block;color:var(--text-2);font-size:12.5px;line-height:1.45;margin-top:2px}
+.opt.lock{opacity:.42}
+
+/* ── grids ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+
+/* ── pills ── */
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;letter-spacing:.06em;
+  padding:3.5px 9px;border-radius:99px;border:1px solid var(--border);color:var(--text-2);text-transform:uppercase}
+.pill.indoor,.marca.indoor{color:#C3B5FF;border-color:rgba(155,135,255,.5);background:rgba(155,135,255,.15)}
+.pill.exterior,.marca.exterior{color:#F7C489;border-color:rgba(240,160,60,.5);background:rgba(240,160,60,.15)}
+.pill.altura,.marca.altura{color:#A5DEFA;border-color:rgba(79,195,247,.5);background:rgba(79,195,247,.15)}
+
+/* Marca de pista: cuadrito con el emoji, sin texto */
+.marca{display:inline-flex;align-items:center;justify-content:center;width:27px;height:27px;flex:none;
+  border-radius:8px;border:1px solid;font-size:14px;line-height:1}
+
+.leyenda{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:9px}
+.leyenda-t{font-size:11px;letter-spacing:.13em;color:var(--muted);font-weight:800;margin-right:1px}
+.pill.acc{color:var(--accent);border-color:rgba(34,211,165,.4);background:rgba(34,211,165,.1)}
+.pill.gold{color:var(--gold);border-color:rgba(245,197,66,.4);background:rgba(245,197,66,.1)}
+.pill.mal{color:var(--danger);border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.1)}
+
+/* ── tier badge ── */
+.cod{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:20px;padding:0 5px;
+  border-radius:5px;background:rgba(110,215,195,.14);border:1px solid var(--border);
+  font-size:11px;font-weight:900;letter-spacing:.06em;color:var(--text-2);flex:none}
+.tier{font-size:11px;font-weight:900;letter-spacing:.07em;padding:3px 7px;border-radius:6px;flex:none}
+.t-F{background:rgba(147,167,188,.16);color:var(--cat-fip)}
+.t-S{background:rgba(58,217,143,.16);color:var(--cat-star)}
+.t-P{background:rgba(41,182,246,.16);color:var(--cat-plat)}
+.t-1{background:rgba(240,117,192,.18);color:var(--cat-p1)}
+.t-M{background:rgba(245,197,66,.18);color:var(--cat-major)}
+
+/* ── barras stats ── */
+.stat{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+.stat .n{font-size:11.5px;letter-spacing:.05em;color:var(--text-2);font-weight:800;width:78px;flex:none;text-transform:uppercase}
+.stat .bar{flex:1;height:7px;border-radius:99px;background:rgba(34,211,165,.09);overflow:hidden;position:relative}
+.stat .bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.stat .bar u{position:absolute;top:-2px;width:2px;height:11px;background:rgba(255,255,255,.28)}
+.stat .v{width:26px;text-align:right;font-size:12px;font-weight:800;flex:none;font-variant-numeric:tabular-nums}
+.stat .up{color:var(--accent);font-size:11px;font-weight:800;width:26px;flex:none}
+
+/* ── meter ── */
+.meter{height:8px;border-radius:99px;background:rgba(34,211,165,.09);overflow:hidden}
+.meter i{display:block;height:100%;border-radius:99px;transition:.3s}
+
+/* ── partido ── */
+.match{background:var(--card-bg-2);border:1px solid var(--border);border-radius:12px;padding:11px 12px;margin-bottom:7px}
+.match .rd{font-size:11px;letter-spacing:.11em;color:var(--muted);font-weight:800;margin-bottom:7px}
+.mrow{display:flex;align-items:center;gap:8px;padding:2.5px 0}
+.mrow .nm{flex:1;font-size:13px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow.win .nm{font-weight:900}
+.mrow.lose .nm{color:var(--muted)}
+.mrow .rk{font-size:11.5px;color:var(--muted);font-weight:700;flex:none}
+.mrow .sc{display:flex;gap:5px;flex:none}
+.mrow .sc s{text-decoration:none;font-variant-numeric:tabular-nums;font-weight:600;font-size:14px;width:13px;text-align:center;color:var(--muted)}
+.mrow .sc s.g{font-weight:800;color:var(--text)}
+.mrow .dot{width:6px;height:6px;border-radius:50%;flex:none}
+.mrow.win .dot{background:var(--accent)}
+.mrow.lose .dot{background:transparent}
+
+/* ── log ── */
+.log{background:rgba(110,215,195,.06);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;
+  padding:10px 12px;font-size:13.5px;color:var(--text-2);margin-bottom:7px;line-height:1.55}
+.log.bad{border-left-color:var(--danger)}
+.log.gold{border-left-color:var(--gold)}
+
+/* ── listas ── */
+.li{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--border-soft)}
+.li:last-child{border-bottom:0}
+.li .g{flex:1;min-width:0}
+.li .g b{display:block;font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .g span{font-size:12px;color:var(--muted)}
+
+/* ── tabs ── */
+.tabs{display:flex;gap:5px;margin-bottom:11px}
+.tabs button{flex:1;min-height:44px;background:var(--card-bg);border:1px solid var(--border);border-radius:9px;padding:8px 4px;
+  font-size:11px;font-weight:800;letter-spacing:.05em;color:var(--muted)}
+.tabs button.on{background:rgba(34,211,165,.12);border-color:rgba(34,211,165,.36);color:var(--accent)}
+
+
+/* ═══ GOLPE A GOLPE · componentes propios ═══ */
+
+/* ── marcador de puntos clave ── */
+.marcador{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px}
+.marcador .clave{grid-column:1 / -1;order:-1;margin-bottom:2px}
+.marcador .lado{display:flex;flex-direction:column;gap:3px;min-width:0}
+.marcador .lado.der{align-items:flex-end;text-align:right}
+.marcador .nom{font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.bolas{display:flex;gap:4px}
+.bolas i{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--border);display:block}
+.bolas i.si{background:var(--pelota);border-color:var(--pelota)}
+.bolas.ellos i.si{background:var(--danger);border-color:var(--danger)}
+.clave{font-size:10.5px;font-weight:900;letter-spacing:.12em;color:var(--gold);text-align:center;text-transform:uppercase}
+
+/* ── la pista: quién tiene la red, de un vistazo ── */
+.pista{position:relative;height:118px;border-radius:12px;overflow:hidden;margin:10px 0 8px;
+  background:linear-gradient(180deg,#0F4A43 0%,#0C3F39 49.5%,#0C3F39 50.5%,#0F4A43 100%);
+  border:2px solid rgba(220,245,74,.18)}
+.pista:before{content:'';position:absolute;left:0;right:0;top:50%;height:3px;margin-top:-1.5px;background:rgba(255,255,255,.55)}
+.pista .linea{position:absolute;left:12%;right:12%;height:1px;background:rgba(255,255,255,.18)}
+.pista .zona{position:absolute;left:0;right:0;height:50%;display:flex;align-items:center;justify-content:center;gap:34px}
+.pista .zona.arriba{top:0}.pista .zona.abajo{bottom:0}
+.ficha{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:900;transition:transform .35s ease;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.ficha.yo{background:var(--pelota);color:#1b2a05}
+.ficha.el{background:#FF8A8A;color:#3a0707}
+.etq-red{position:absolute;left:8px;font-size:9.5px;font-weight:900;letter-spacing:.1em;padding:2px 6px;border-radius:5px}
+.etq-red.nuestra{background:rgba(220,245,74,.2);color:var(--pelota)}
+.etq-red.suya{background:rgba(255,107,107,.2);color:#FFB3B3}
+
+/* ── dominio: la cuerda del punto ── */
+.dominio{display:flex;gap:3px;margin-top:4px}
+.dominio i{flex:1;height:12px;border-radius:3px;background:rgba(255,255,255,.07);display:block}
+.dominio i.c{background:rgba(255,255,255,.28)}
+.dominio i.v{background:var(--pelota)}
+.dominio i.r{background:var(--danger)}
+.dom-leyenda{display:flex;justify-content:space-between;font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--muted);margin-top:4px}
+
+/* ── lo que va a hacer la pareja rival ── */
+.intencion{display:flex;align-items:center;gap:10px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);
+  border-radius:11px;padding:9px 11px}
+.intencion.def{background:rgba(155,135,255,.08);border-color:rgba(155,135,255,.35)}
+.intencion .ic{font-size:22px;flex:none}
+.intencion b{display:block;font-size:13.5px}
+.intencion span{display:block;font-size:12px;color:var(--text-2)}
+.cuando{font-size:9.5px;font-weight:900;letter-spacing:.1em;padding:2px 6px;border-radius:5px;margin-left:auto;flex:none;
+  background:rgba(255,255,255,.08);color:var(--text-2);white-space:nowrap}
+
+/* ── energía y cobertura ── */
+.recursos{display:flex;align-items:center;gap:12px;margin:9px 0 7px}
+.orbes{display:flex;gap:5px}
+.orbes i{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-style:normal;
+  background:rgba(245,197,66,.14);border:1.5px solid rgba(245,197,66,.35)}
+.orbes i.si{background:var(--gold);border-color:var(--gold)}
+.escudo{font-size:12.5px;font-weight:800;color:#C3B5FF}
+
+/* ── la mano de golpes ── */
+.mano{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px 7px;margin-top:10px}
+.carta{position:relative;display:flex;flex-direction:column;align-items:stretch;text-align:left;min-height:128px;padding:8px 8px 9px;
+  border-radius:12px;border:1.5px solid var(--border);background:var(--card-bg-2);transition:transform .12s, opacity .12s}
+.carta:active{transform:scale(.96)}
+.carta.red{border-color:rgba(220,245,74,.45)}
+.carta.fondo{border-color:rgba(79,195,247,.45)}
+.carta.libre{border-color:rgba(255,255,255,.22)}
+.carta.muerta{border-style:dashed;opacity:.5}
+.carta.no{opacity:.36}
+.carta .coste{position:absolute;top:-7px;left:-5px;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#2a1d00;
+  font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.carta .zona-c{font-size:9px;font-weight:900;letter-spacing:.1em;margin-left:14px}
+.carta.red .zona-c{color:var(--pelota)} .carta.fondo .zona-c{color:var(--altura)} .carta.libre .zona-c{color:var(--text-2)}
+.carta .ic{font-size:21px;margin:4px 0 2px}
+.carta .nm{font-size:12px;font-weight:900;line-height:1.15}
+.carta .ef{font-size:10.8px;color:var(--text-2);line-height:1.3;margin-top:3px}
+.carta .mas{color:var(--accent)}
+.carta.grande{min-height:150px}
+
+/* ── la ruta de la temporada ── */
+.ruta{display:flex;gap:4px;margin-top:9px}
+.ruta i{flex:1;height:7px;border-radius:99px;background:rgba(255,255,255,.08);display:block}
+.ruta i.hecha{background:var(--accent)}
+.ruta i.ahora{background:var(--gold)}
+.parada{display:flex;gap:11px;align-items:flex-start}
+
+/* ── punto de oro ── */
+.oro-hero{background:linear-gradient(160deg,rgba(245,197,66,.18),transparent 62%);border-color:rgba(245,197,66,.4)}
+.oro-hero .clave{font-size:12px}
+
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.fade{animation:f .22s ease-out}
+#app.sin-entrada .fade{animation:none}
+@keyframes f{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes golpe{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+.pulso{animation:golpe .35s ease-out}
+@media (prefers-reduced-motion: reduce){ .fade,.pulso{animation:none} .carta,.ficha{transition:none} }
+.center{text-align:center}.mb0{margin-bottom:0}.tabular{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+'use strict';
+
+const SAVE_KEY = 'cabra_padel_golpe_v1';
+const $ = s => document.querySelector(s);
+const rnd = (a,b) => a + Math.random()*(b-a);
+const ri  = (a,b) => Math.floor(rnd(a,b+1));
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money = n => n>=1e6 ? (n/1e6).toFixed(1)+'M€' : n>=1000 ? Math.round(n/100)/10+'k€' : Math.round(n)+'€';
+function barajar(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const k=Math.floor(Math.random()*(i+1)); [a[i],a[k]]=[a[k],a[i]]; } return a; }
+function pesado(items){ const t=items.reduce((a,x)=>a+x.p,0); let u=Math.random()*t; for(const x of items){ u-=x.p; if(u<=0) return x; } return items[items.length-1]; }
+
+/* ═══════════════════════════════════════════════════════════════
+   LAS REGLAS DEL PUNTO
+   Cada punto clave se juega golpe a golpe. Hay una cuerda —el DOMINIO— que
+   va de −META a +META: si llega a vuestro lado, el punto es vuestro.
+   Quien tiene la red empuja; quien está en el fondo aguanta y busca el globo.
+   ═══════════════════════════════════════════════════════════════ */
+/* El dominio tiene que ser MÁS de lo que empuja una buena mano en un turno. Si
+   no, quien empieza con la red cierra el punto antes de que el rival mueva. */
+const META = 10;           // dominio para ganar un punto clave
+const META_ORO = 8;        // el punto de oro es a muerte súbita: se decide antes
+const ENERGIA = 3;         // energía por turno
+const MANO = 5;            // golpes por turno
+const CLAVES = 3;          // puntos clave para ganar un partido
+
+let S = null;              // estado de la partida
+let CFG = { nombre:'', genero:'M', pais:'ES', posicion:'reves', estilo:'rematador', error:null };
+
+function esF(){ return (S && S.j && S.j.genero === 'F') || (!S || !S.j ? CFG.genero === 'F' : false); }
+function gx(m, f){ return esF() ? f : m; }
+function ga(){ return esF() ? 'a' : 'o'; }
+
+const PAISES = [
+  ['AR','ARG','Argentina'],['BO','BOL','Bolivia'],['CL','CHI','Chile'],['CO','COL','Colombia'],['CR','CRC','Costa Rica'],
+  ['CU','CUB','Cuba'],['EC','ECU','Ecuador'],['SV','ESA','El Salvador'],['ES','ESP','España'],['GQ','GEQ','Guinea Ecuatorial'],
+  ['GT','GUA','Guatemala'],['HN','HON','Honduras'],['MX','MEX','México'],['NI','NCA','Nicaragua'],['PA','PAN','Panamá'],
+  ['PY','PAR','Paraguay'],['PE','PER','Perú'],['PR','PUR','Puerto Rico'],['DO','DOM','República Dominicana'],['UY','URU','Uruguay'],['VE','VEN','Venezuela'],
+].map(([id,cod,nom])=>({id,cod,nom}));
+function paisPorId(id){ return PAISES.find(p=>p.id===id) || PAISES[8]; }
+
+/* ── El circuito ── nivel = lo fuertes que son las parejas rivales */
+const TIERS = {
+  FIP1:{nom:'FIP PROMISES', cls:'t-F', etq:'PROMISES', nivel:0,   rondas:3, acc:9999, pts:[40,24,12,0],        prem:300},
+  FIP2:{nom:'FIP RISE',     cls:'t-F', etq:'RISE',     nivel:1.2,   rondas:3, acc:1400, pts:[70,42,21,0],        prem:600},
+  FIP3:{nom:'FIP STAR',     cls:'t-S', etq:'STAR',     nivel:2.5,   rondas:3, acc:800,  pts:[120,72,36,0],       prem:1100},
+  FIP4:{nom:'FIP GOLD',     cls:'t-S', etq:'GOLD',     nivel:3.8,   rondas:3, acc:500,  pts:[200,120,60,0],      prem:2000},
+  FIP5:{nom:'FIP PLATINUM', cls:'t-S', etq:'PLATINUM', nivel:5,   rondas:3, acc:320,  pts:[320,190,95,0],      prem:3500},
+  P2:  {nom:'PREMIER P2',   cls:'t-P', etq:'P2',       nivel:6.5, rondas:3, acc:180,  pts:[500,300,150,0],     prem:7000},
+  P1:  {nom:'PREMIER P1',   cls:'t-1', etq:'P1',       nivel:8.5,   rondas:4, acc:90,   pts:[900,540,270,120,0], prem:14000},
+  MJ:  {nom:'MAJOR',        cls:'t-M', etq:'MAJOR',    nivel:10.5, rondas:4, acc:45,   pts:[1800,1080,540,240,0], prem:30000},
+};
+const ORDEN_TIER = ['FIP1','FIP2','FIP3','FIP4','FIP5','P2','P1','MJ'];
+const NOM_RONDA = {3:['CUARTOS','SEMIFINAL','FINAL'], 4:['OCTAVOS','CUARTOS','SEMIFINAL','FINAL']};
+const SEDES = ['Madrid','Málaga','Valencia','Sevilla','Buenos Aires','Mar del Plata','Santiago','Asunción','Montevideo','Monterrey',
+  'Acapulco','Bruselas','Milán','Roma','París','Doha','Riad','Dubái','Miami','Lisboa','Vigo','Zaragoza','Córdoba','Lima','Bogotá'];
+const MAJORS = [['Qatar Major','Doha'],['Italy Major','Roma'],['Roland Garros Major','París'],['Mexico Major','Acapulco']];
+
+/* Ranking: suma de los mejores resultados de las últimas 8 paradas de torneo */
+const TABLA_RK = [[6000,1],[4800,2],[4000,3],[3400,4],[2900,6],[2400,8],[2000,10],[1500,15],[1200,20],[900,30],
+  [700,45],[520,60],[400,80],[300,100],[220,140],[160,190],[110,260],[75,350],[50,480],[30,650],[15,900],[5,1300],[1,1800]];
+function rankDePuntos(p){
+  if(!p || p < 1) return null;
+  if(p >= TABLA_RK[0][0]) return 1;
+  for(let i=0;i<TABLA_RK.length-1;i++){
+    const [p1,r1]=TABLA_RK[i], [p2,r2]=TABLA_RK[i+1];
+    if(p<=p1 && p>=p2){ const t=(Math.log(p)-Math.log(p2))/(Math.log(p1)-Math.log(p2)); return Math.max(1,Math.round(r2+t*(r1-r2))); }
+  }
+  return 1800;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOS GOLPES
+   Cada carta es un golpe de pádel. 🔺 RED solo se juega con la red vuestra,
+   🔻 FONDO solo defendiendo, ⚪ LIBRE en cualquier sitio. En el mazo se guardan
+   como 'volea' o 'volea+' (mejorada). Todos los efectos pasan por el motor (C)
+   para que los materiales y la pareja puedan meter mano.
+   ═══════════════════════════════════════════════════════════════ */
+const CARTAS = {
+  // ── básicas ──
+  volea:      {nom:'Volea', ic:'🎯', coste:1, zona:'red', rareza:'basica',
+               txt:m=>`+${m?3:2} dominio.`, jugar:(C,m)=>C.empujar(m?3:2)},
+  bandeja:    {nom:'Bandeja', ic:'🍽️', coste:1, zona:'red', rareza:'basica',
+               txt:m=>`+${m?2:1} dominio. <b>Mantiene la red.</b>`, jugar:(C,m)=>{ C.empujar(m?2:1); C.mantener(); }},
+  globo:      {nom:'Globo', ic:'☂️', coste:1, zona:'fondo', rareza:'basica',
+               txt:m=>`${m?'+1 dominio. ':''}Al acabar el turno <b>recuperáis la red</b>. Falla si hacen bandeja.`, jugar:(C,m)=>{ if(m) C.empujar(1); C.globo(false); }},
+  defensa:    {nom:'Defensa de pared', ic:'🧱', coste:1, zona:'fondo', rareza:'basica',
+               txt:m=>`+${m?4:3} cobertura.`, jugar:(C,m)=>C.cubrir(m?4:3)},
+  paciencia:  {nom:'Paciencia', ic:'⏳', coste:0, zona:'libre', rareza:'basica',
+               txt:m=>`Roba ${m?2:1} golpe${m?'s':''}.`, jugar:(C,m)=>C.robar(m?2:1)},
+  // ── comunes ──
+  vibora:     {nom:'Víbora', ic:'🐍', coste:2, zona:'red', rareza:'comun',
+               txt:m=>`+${m?5:4} dominio. <b>Mantiene la red.</b>`, jugar:(C,m)=>{ C.empujar(m?5:4); C.mantener(); }},
+  voleaProf:  {nom:'Volea profunda', ic:'🧊', coste:1, zona:'red', rareza:'comun',
+               txt:m=>`+${m?2:1} dominio. Su próximo ataque hace ${m?3:2} menos.`, jugar:(C,m)=>{ C.empujar(m?2:1); C.debilitar(m?3:2); }},
+  dejada:     {nom:'Dejada', ic:'🪶', coste:1, zona:'red', rareza:'comun',
+               txt:m=>`+${m?3:2} dominio. <b>Ignora su cobertura.</b>`, jugar:(C,m)=>C.empujar(m?3:2, {ignora:true})},
+  bandejaCort:{nom:'Bandeja cortada', ic:'🔪', coste:1, zona:'red', rareza:'comun',
+               txt:m=>`+${m?2:1} dominio. Mantiene la red. Roba 1.`, jugar:(C,m)=>{ C.empujar(m?2:1); C.mantener(); C.robar(1); }},
+  contrapared:{nom:'Contrapared', ic:'🔄', coste:1, zona:'fondo', rareza:'comun',
+               txt:m=>`+${m?3:2} cobertura. Roba 1.`, jugar:(C,m)=>{ C.cubrir(m?3:2); C.robar(1); }},
+  chiquita:   {nom:'Chiquita', ic:'🐁', coste:1, zona:'fondo', rareza:'comun',
+               txt:m=>`+${m?2:1} dominio. Su próximo ataque hace ${m?3:2} menos.`, jugar:(C,m)=>{ C.empujar(m?2:1); C.debilitar(m?3:2); }},
+  salida:     {nom:'Salida de pared', ic:'⚡', coste:2, zona:'fondo', rareza:'comun',
+               txt:m=>`+${m?4:3} cobertura y +2 dominio.`, jugar:(C,m)=>{ C.cubrir(m?4:3); C.empujar(2); }},
+  comunicacion:{nom:'¡Mía!', ic:'🗣️', coste:1, zona:'libre', rareza:'comun',
+               txt:m=>`+${m?3:2} cobertura y +1 dominio.`, jugar:(C,m)=>{ C.cubrir(m?3:2); C.empujar(1); }},
+  // ── raras ──
+  remate3:    {nom:'Remate por 3', ic:'🚀', coste:3, zona:'red', rareza:'rara',
+               txt:m=>`+${m?8:7} dominio. Si no ganáis el punto este turno, <b>perdéis la red</b>.`,
+               jugar:(C,m)=>{ C.empujar(m?8:7); C.arriesgarRed(); }},
+  globoProf:  {nom:'Globo profundo', ic:'🌙', coste:2, zona:'fondo', rareza:'rara',
+               txt:m=>`+${m?2:1} dominio. Recuperáis la red <b>aunque hagan bandeja</b>.`, jugar:(C,m)=>{ C.empujar(m?2:1); C.globo(true); }},
+  ritmo:      {nom:'Cambio de ritmo', ic:'🎛️', coste:1, zona:'libre', rareza:'rara',
+               txt:m=>`Lo que hacen este turno pierde ${m?4:3} de fuerza.`, jugar:(C,m)=>C.frenar(m?4:3)},
+  respirar:   {nom:'Respirar hondo', ic:'🫁', coste:1, zona:'libre', rareza:'rara',
+               txt:m=>`El próximo turno tenéis +${m?3:2} energía.`, jugar:(C,m)=>C.energiaProx(m?3:2)},
+  vamos:      {nom:'¡Vamos!', ic:'🔥', coste:0, zona:'libre', rareza:'rara', agota:true,
+               txt:m=>`+1 energía${m?' y roba 1':''}. Se agota hasta el próximo punto.`, jugar:(C,m)=>{ C.energiaMas(1); if(m) C.robar(1); }},
+  cruce:      {nom:'Cruce', ic:'✖️', coste:2, zona:'red', rareza:'rara',
+               txt:m=>`+${m?4:3} dominio, +2 más con química 60. Mantiene la red.`,
+               jugar:(C,m)=>{ C.empujar((m?4:3) + (C.quimica>=60?2:0)); C.mantener(); }},
+  // ── épicas ──
+  salirPista: {nom:'Salir de la pista', ic:'🚪', coste:2, zona:'fondo', rareza:'epica', agota:true,
+               txt:m=>`Su ataque de este turno no os hace nada. +${m?3:2} dominio. Se agota.`, jugar:(C,m)=>{ C.anular(); C.empujar(m?3:2); }},
+  remate4:    {nom:'Remate por 4', ic:'☄️', coste:3, zona:'red', rareza:'epica', agota:true,
+               txt:m=>`+${m?11:9} dominio. Se agota.`, jugar:(C,m)=>C.empujar(m?11:9)},
+  muralla:    {nom:'La muralla', ic:'🏰', coste:2, zona:'fondo', rareza:'epica',
+               txt:m=>`+${m?6:5} cobertura. Si paráis entero su ataque, recuperáis la red.`, jugar:(C,m)=>{ C.cubrir(m?6:5); C.murallaRed(); }},
+  oro:        {nom:'Cabeza fría', ic:'🥇', coste:1, zona:'libre', rareza:'epica',
+               txt:m=>`+${m?2:1} dominio. En el punto de oro, +${m?5:4}.`, jugar:(C,m)=>C.empujar(C.esOro ? (m?5:4) : (m?2:1))},
+  // ── cartas muertas ──
+  piernas:    {nom:'Piernas pesadas', ic:'🦵', coste:0, zona:'muerta', rareza:'estado',
+               txt:()=>`No se puede jugar. Se va descansando.`, jugar:()=>{}},
+  palaNueva:  {nom:'Pala sin rodar', ic:'🏓', coste:0, zona:'muerta', rareza:'estado',
+               txt:()=>`No se puede jugar. Se va al acabar el torneo.`, jugar:()=>{}},
+};
+const ZONA_NOM = {red:'🔺 RED', fondo:'🔻 FONDO', libre:'⚪ LIBRE', muerta:'✖ MUERTA'};
+function parsearCarta(e){ const m = e.endsWith('+'); const id = m ? e.slice(0,-1) : e; return {id, m, def:CARTAS[id]}; }
+function costeCarta(e){ const {def,m} = parsearCarta(e); return (m && def.costeM != null) ? def.costeM : def.coste; }
+function nomCarta(e){ const {def,m} = parsearCarta(e); return def.nom + (m ? '+' : ''); }
+
+/* ── Estilos: con qué mazo empiezas ── */
+const ESTILOS = {
+  rematador:{nom:'REMATADOR', ic:'💥', rol:'cierra',   d:'Todo lo que sube, baja por tres. Arrasas con la red; sufres en el fondo.', extra:['vibora','remate3']},
+  voleador: {nom:'VOLEADOR',  ic:'🎯', rol:'cierra',   d:'Vives pegado a la red. Golpes baratos, dejadas y punto corto.',             extra:['voleaProf','dejada']},
+  paredista:{nom:'PAREDISTA', ic:'🧱', rol:'sostiene', d:'Del cristal sacas lo imposible. Aguantas y contraatacas.',                 extra:['salida','contrapared']},
+  tactico:  {nom:'TÁCTICO',   ic:'🧠', rol:'sostiene', d:'Globo profundo, cambio de ritmo. Ganas partidos que no deberías.',          extra:['globoProf','ritmo']},
+};
+const POSICIONES = {
+  reves:{nom:'REVÉS', ic:'⬅️', d:'Cierras el punto. Empiezas con una Víbora.', extra:'vibora'},
+  drive:{nom:'DRIVE', ic:'➡️', d:'Construyes el punto. Empiezas con una Contrapared.', extra:'contrapared'},
+};
+function mazoInicial(estilo, posicion){
+  return ['volea','volea','bandeja','bandeja','globo','globo','defensa','defensa','paciencia']
+    .concat(ESTILOS[estilo].extra, [POSICIONES[posicion].extra]);
+}
+
+/* ── Parejas: cada una trae una pasiva y dos golpes ── */
+const TIPOS_PAREJA = {
+  rematador:{apodo:'el Cañón',      pasiva:'canon',   pasNom:'Cañón',         pasTxt:'Tus golpes de 2⚡ o más empujan +1.',            cartas:['vibora','remate3']},
+  voleador: {apodo:'Manos de Seda', pasiva:'seda',    pasNom:'Manos de seda', pasTxt:'La primera Volea de cada punto cuesta 0.',       cartas:['voleaProf','dejada']},
+  paredista:{apodo:'la Muralla',    pasiva:'muro',    pasNom:'Muralla',       pasTxt:'+1 cobertura cada turno que empecéis en el fondo.', cartas:['salida','contrapared']},
+  tactico:  {apodo:'el Profe',      pasiva:'profe',   pasNom:'El Profe',      pasTxt:'Al empezar cada punto, robas 1 golpe más.',       cartas:['globoProf','ritmo']},
+};
+const NOM_A = ['Juan','Agustín','Martín','Franco','Álex','Javi','Fran','Nico','Lucas','Gonzalo','Maxi','Fede','Iván','Álvaro','Rubén',
+  'Jon','Aitor','Pablo','Dani','Marc','Bruno','Tiago','Rodrigo','Bautista','Santi','Diego','Ramiro','Facundo','Julián','Matías'];
+const NOM_F = ['Ariana','Paula','Bea','Marta','Alejandra','Delfi','Gemma','Claudia','Lucía','Sofía','Tamara','Aranza','Vero','Martina',
+  'Julieta','Carolina','Nuria','Bárbara','Andrea','Sara','Alba','Carla','Rocío','Noa','Marina','Irene','Laura','Camila','Valentina','Renata'];
+const NOM_B = ['González','Fernández','Rodríguez','Martínez','Sánchez','Pérez','Gómez','Ruiz','Díaz','Álvarez','Romero','Navarro','Torres',
+  'Domínguez','Ramos','Gil','Serrano','Molina','Suárez','Castro','Ortega','Delgado','Iglesias','Belluati','Corbalán','Lombardi','Costa',
+  'Almeida','Brea','Ibarra','Quiroga','Peralta','Sosa','Acosta','Benítez','Cabrera','Villalba','Zabala','Escudero','Larsen','Moreau'];
+function nombreGen(gen){ return pick(gen==='F'?NOM_F:NOM_A) + ' ' + pick(NOM_B); }
+function nuevaPareja(estilo, gen){
+  const t = TIPOS_PAREJA[estilo];
+  return { nombre:nombreGen(gen), apodo:t.apodo, estilo, pasiva:t.pasiva, cartas:t.cartas.slice(),
+           flag:pick(PAISES).cod, quimica:0, temporadas:0 };
+}
+function encaja(miEstilo, suEstilo){ return ESTILOS[miEstilo].rol !== ESTILOS[suEstilo].rol; }
+
+/* ── Material: se compra o se gana, y dura toda la carrera ── */
+const MATERIALES = {
+  carbono:  {nom:'Pala de carbono',     ic:'🏓', precio:140, txt:'El primer golpe que empuja en cada punto, +1 dominio.'},
+  grip:     {nom:'Grip nuevo',          ic:'🩹', precio:110, txt:'El primer Globo de cada punto cuesta 0.'},
+  zapas:    {nom:'Zapatillas de agarre',ic:'👟', precio:120, txt:'+2 cobertura en el primer turno de cada punto.'},
+  libreta:  {nom:'Libreta de rivales',  ic:'📓', precio:150, txt:'Ves también lo que harán el turno siguiente.'},
+  isotonica:{nom:'Isotónica',           ic:'🥤', precio:90,  txt:'Tras cada partido ganado, +15 piernas.'},
+  munequera:{nom:'Muñequera de la suerte',ic:'🎗️', precio:130, txt:'En el punto de oro, +1 energía cada turno.'},
+  paletero: {nom:'Paletero de marca',   ic:'🎒', precio:100, txt:'+60€ por cada partido ganado.'},
+  visera:   {nom:'Visera',              ic:'🧢', precio:120, txt:'El primer ataque que recibís en cada punto hace 2 menos.'},
+};
+
+/* ── Parejas rivales: cada una juega a algo, y se nota en lo que eligen ── */
+const ARQUETIPOS = [
+  {id:'muro',     nom:'globo y paciencia',   red:{volea:3,bandeja:4,vibora:1,remate:.3,dejada:.5},  fondo:{globo:5,defensa:3,contrapared:2,chiquita:1,salida:1}},
+  {id:'red',      nom:'todo a la red',       red:{volea:5,bandeja:2,vibora:2,remate:.6,dejada:1},   fondo:{globo:3,defensa:2,contrapared:1,chiquita:3,salida:.5}},
+  {id:'potencia', nom:'potencia y remate',   red:{volea:2,bandeja:1.5,vibora:3.5,remate:1.5,dejada:.3}, fondo:{globo:3,defensa:2.5,contrapared:1.5,chiquita:1,salida:1}},
+  {id:'zurda',    nom:'zurd@ al drive',      red:{volea:3,bandeja:2.5,vibora:2,remate:.6,dejada:2}, fondo:{globo:3.5,defensa:2,contrapared:2,chiquita:2,salida:1}},
+  {id:'joven',    nom:'jóvenes sin miedo',   red:{volea:3.5,bandeja:1,vibora:3,remate:1.2,dejada:1},fondo:{globo:2.5,defensa:1.5,contrapared:1,chiquita:2.5,salida:.5}},
+  {id:'oficio',   nom:'oficio y colocación', red:{volea:2.5,bandeja:3.5,vibora:1.5,remate:.4,dejada:2}, fondo:{globo:4,defensa:3,contrapared:2.5,chiquita:1.5,salida:2}},
+];
+/* Las finales de los torneos grandes traen una pareja con algo especial */
+const RASGOS = {
+  reyes:     {nom:'Reyes de la red',      txt:'Cada turno que acaban con la red, +1 dominio a su favor.'},
+  muro:      {nom:'Muro',                 txt:'Siempre tienen al menos 1 de cobertura.'},
+  lectura:   {nom:'Os leen el globo',     txt:'Vuestro primer globo de cada punto falla.'},
+  exhibicion:{nom:'Remate de exhibición', txt:'Sus remates y víboras hacen +2.'},
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   EL MOTOR DEL PUNTO
+   Todo es información a la vista: la pareja rival enseña lo que va a hacer
+   ANTES de que juegues. El azar está en qué golpes te tocan, no en el dado.
+   ═══════════════════════════════════════════════════════════════ */
+function nuevoRival(tier, ronda, rondas){
+  const T = TIERS[tier];
+  const final = ronda === rondas-1;
+  /* Al número uno todo el mundo le juega la vida: arriba del todo, rivales más duros */
+  const r = S.j.ranking || 9999;
+  const nivel = T.nivel + ronda*0.5 + (r<=3 ? 2 : r<=10 ? 1.2 : r<=25 ? .6 : 0);
+  const jefe = final && (tier==='P2' || tier==='P1' || tier==='MJ');
+  return { nombre:nombreGen(S.j.genero), nombre2:nombreGen(S.j.genero), flag:pick(PAISES).cod, arq:pick(ARQUETIPOS),
+           nivel, rasgo: jefe ? pick(Object.keys(RASGOS)) : null };
+}
+
+/* Lo que puede hacer la pareja rival, según dónde esté */
+function intencionDe(id, n, rasgo){
+  /* Lo que hace cada golpe rival crece con su nivel. Desde el fondo también
+     hacen daño —salida de pared, chiquita— y a partir de cierto nivel sus
+     globos son tan profundos que ni la bandeja os deja arriba. */
+  const r = x => Math.round(x);
+  const ex = rasgo === 'exhibicion' ? 2 : 0;
+  const I = {
+    volea:      {nom:'Volea',           ic:'🎯', ataque:2+r(n*.45)},
+    bandeja:    {nom:'Bandeja',         ic:'🍽️', ataque:1+r(n*.3), bandeja:true},
+    vibora:     {nom:'Víbora',          ic:'🐍', ataque:3+r(n*.55)+ex},
+    remate:     {nom:'Remate por 3',    ic:'🚀', ataque:5+r(n*.6)+ex},
+    dejada:     {nom:'Dejada',          ic:'🪶', ataque:2+r(n*.35), ignoraCob:true},
+    globo:      {nom:'Globo',           ic:'☂️', globo:true, profundo: n>=3 && Math.random() < .12 + n*.05},
+    defensa:    {nom:'Defensa de pared',ic:'🧱', cob:2+r(n*.55)},
+    contrapared:{nom:'Contrapared',     ic:'🔄', cob:1+r(n*.35), ataque:1+r(n*.25)},
+    chiquita:   {nom:'Chiquita',        ic:'🐁', chiquita:true, ataque:1+r(n*.3)},
+    salida:     {nom:'Salida de pared', ic:'⚡', cob:2+r(n*.4), ataque:2+r(n*.35)},
+  }[id];
+  if(I.profundo) I.nom = 'Globo profundo';
+  return Object.assign({id}, I);
+}
+function elegirIntencion(C){
+  const R = S.partido.rival;
+  const pesos = C.red === 'el' ? R.arq.red : R.arq.fondo;
+  const items = Object.keys(pesos).map(id=>({id, p: pesos[id] * (C.ultima===id ? 0.4 : 1)}));
+  return intencionDe(pesado(items).id, R.nivel, R.rasgo);
+}
+/* Texto de la intención para la pantalla */
+function textoIntencion(I, C){
+  if(I.globo) return I.profundo ? {t:'Globo profundo', d:'Al acabar el turno os quitan la red <b>aunque mantengáis</b>. Empujad todo lo que podáis antes.', cuando:'AL ACABAR', def:false}
+                         : {t:'Os globean', d:'Al acabar el turno os quitan la red, salvo que juguéis un golpe que <b>mantenga la red</b>.', cuando:'AL ACABAR', def:false};
+  if(I.cob) return {t:`${I.nom}: se cubren ${Math.max(0,C.cobRival)}`, d:`Frenan ${C.cobRival} de lo que empujéis este turno.${I.ataque?` Y al acabar, −${I.ataque}.`:''}`, cuando:'YA ACTIVO', def:true};
+  if(I.chiquita) return {t:'Chiquita a los pies', d:`Vuestros golpes 🔺 cuestan +1 este turno. Al acabar, −${I.ataque}.`, cuando:'YA ACTIVO', def:true};
+  const dmg = Math.max(0, I.ataque - C.frenado - C.debil - (C.primerAtaque && tieneMaterial('visera') ? 2 : 0));
+  return {t:`${I.nom}: −${dmg}`, d: (I.ignoraCob ? '<b>Ignora vuestra cobertura.</b> ' : 'Vuestra cobertura lo frena. ') + (I.bandeja ? 'Con bandeja: <b>vuestro globo falla</b>.' : ''), cuando:'AL ACABAR', def:false};
+}
+
+function tieneMaterial(id){ return S.j.materiales.includes(id); }
+function pasiva(id){ return S.j.pareja && S.j.pareja.pasiva === id; }
+
+function crearPunto(){
+  const j = S.j, P = S.partido;
+  const oro = P.esOro;
+  const cartas = j.mazo.concat(j.pareja ? j.pareja.cartas : [], (j.pareja && j.pareja.quimica>=30) ? ['cruce'] : []);
+  const C = {
+    dom:0, meta: oro ? META_ORO : META, esOro:oro, turno:0,
+    red: oro ? (P.eleccionOro==='sacar' ? 'yo' : 'el') : P.saca,
+    mazo:barajar(cartas), mano:[], descarte:[], agotadas:[], log:[],
+    energia:0, cob:0, cobRival:0, frenado:0, debil:0, energiaProx:0,
+    primerEmpuje:true, primerGlobo:true, primerAtaque:true, primeraVolea:true, globosLeidos:0,
+    quimica: j.pareja ? j.pareja.quimica : 0, ultima:null, siguiente:null, fin:null,
+  };
+  S.partido.punto = C;
+  nuevoTurno(C, true);
+  return C;
+}
+
+function robar(C, n){
+  for(let i=0;i<n;i++){
+    if(!C.mazo.length){ if(!C.descarte.length) return; C.mazo = barajar(C.descarte); C.descarte = []; }
+    C.mano.push(C.mazo.pop());
+  }
+}
+
+function nuevoTurno(C, primero){
+  const P = S.partido;
+  C.turno++;
+  C.descarte.push(...C.mano); C.mano = [];
+  C.cob = 0; C.cobRival = 0; C.frenado = 0; C.mantiene = false; C.globoPend = 0; C.anulado = false; C.arriesga = false; C.muralla = false;
+  C.energia = ENERGIA + C.energiaProx + (C.esOro && tieneMaterial('munequera') ? 1 : 0) + (C.esOro && P.eleccionOro==='restar' ? 1 : 0);
+  C.energiaProx = 0;
+  robar(C, MANO + (primero && pasiva('profe') ? 1 : 0));
+  if(primero && tieneMaterial('zapas')) C.cob += 2;
+  if(C.red === 'el' && pasiva('muro')) C.cob += 1;
+  if(P.rival.rasgo === 'muro') C.cobRival = 1;
+  C.intencion = (C.siguiente && C.siguiente._red === C.red) ? C.siguiente : elegirIntencion(C);
+  C.ultima = C.intencion.id;
+  if(C.intencion.cob) C.cobRival = Math.max(C.cobRival, C.intencion.cob);
+  C.siguiente = null;
+  if(tieneMaterial('libreta')){ const s = elegirIntencion(C); s._red = C.red; C.siguiente = s; }
+}
+
+/* ── Lo que hace cada golpe ── */
+function motor(C){
+  return {
+    get quimica(){ return C.quimica; }, get esOro(){ return C.esOro; },
+    empujar(n, op){
+      op = op || {};
+      if(pasiva('canon') && C.costeBase >= 2) n += 1;
+      if(C.primerEmpuje && tieneMaterial('carbono')) n += 1;
+      C.primerEmpuje = false;
+      let efectivo = n;
+      if(!op.ignora){ const frena = Math.min(C.cobRival, efectivo); C.cobRival -= frena; efectivo -= frena; }
+      C.dom += efectivo;
+      if(C.dom >= C.meta) C.fin = 'yo';
+    },
+    cubrir(n){ C.cob += n; },
+    robar(n){ robar(C, n); },
+    mantener(){ C.mantiene = true; },
+    globo(fuerte){ C.globoPend = Math.max(C.globoPend, fuerte ? 2 : 1); },
+    frenar(n){ if(C.intencion.cob) C.cobRival = Math.max(0, C.cobRival - n); if(C.intencion.ataque) C.frenado += n; },
+    debilitar(n){ C.debil += n; },
+    energiaMas(n){ C.energia += n; },
+    energiaProx(n){ C.energiaProx += n; },
+    anular(){ C.anulado = true; },
+    arriesgarRed(){ C.arriesga = true; },
+    murallaRed(){ C.muralla = true; },
+  };
+}
+
+/* ── Jugar un golpe ── */
+function costeEfectivo(C, e){
+  const {id, def} = parsearCarta(e);
+  let c = costeCarta(e);
+  if(C.primeraVolea && pasiva('seda') && (id==='volea' || id==='voleaProf')) c = 0;
+  if(C.primerGlobo && tieneMaterial('grip') && (id==='globo' || id==='globoProf')) c = 0;
+  if(C.intencion && C.intencion.chiquita && def.zona === 'red') c += 1;
+  return c;
+}
+function motivoNoJugable(C, e){
+  const {def} = parsearCarta(e);
+  if(def.zona === 'muerta') return 'No se puede jugar';
+  if(def.zona === 'red' && C.red !== 'yo') return 'Necesitas la red';
+  if(def.zona === 'fondo' && C.red !== 'el') return 'Solo defendiendo';
+  if(costeEfectivo(C, e) > C.energia) return 'Sin energía';
+  return null;
+}
+function jugarCarta(idx){
+  const P = S.partido, C = P.punto;
+  if(!C || C.fin) return;
+  const e = C.mano[idx];
+  if(e == null || motivoNoJugable(C, e)) return;
+  const {id, m, def} = parsearCarta(e);
+  C.energia -= costeEfectivo(C, e);
+  C.costeBase = costeCarta(e);
+  if(id==='volea' || id==='voleaProf') C.primeraVolea = false;
+  if(id==='globo' || id==='globoProf') C.primerGlobo = false;
+  C.mano.splice(idx, 1);
+  const antes = C.dom;
+  def.jugar(motor(C), m);
+  (def.agota ? C.agotadas : C.descarte).push(e);
+  const d = C.dom - antes;
+  C.log.unshift(`${def.ic} <b>${nomCarta(e)}</b>${d?` · dominio ${d>0?'+':''}${d}`:''}`);
+  C.pulso = true;
+  if(C.fin){ acabarPunto(); return; }
+  guardar(); render();
+}
+
+/* ── Acabar el turno: ahora juega la pareja rival ── */
+function terminarTurno(){
+  const P = S.partido, C = P.punto;
+  if(!C || C.fin) return;
+  const I = C.intencion, R = P.rival;
+  // 1. su ataque
+  if(I.ataque){
+    let dmg = I.ataque - C.frenado - C.debil;
+    if(C.debil) C.debil = 0;
+    if(C.primerAtaque && tieneMaterial('visera')) dmg -= 2;
+    C.primerAtaque = false;
+    if(!I.ignoraCob) dmg -= C.cob;
+    if(C.anulado) dmg = 0;
+    dmg = Math.max(0, dmg);
+    C.dom -= dmg;
+    C.log.unshift(`${I.ic} Su <b>${I.nom.toLowerCase()}</b>${dmg?` · dominio −${dmg}`:' · lo paráis entero'}`);
+    if(C.muralla && dmg === 0 && C.red === 'el'){ C.red = 'yo'; C.log.unshift('🏰 Lo paráis todo y <b>subís a la red</b>'); }
+  }
+  if(C.dom <= -C.meta){ C.fin = 'el'; acabarPunto(); return; }
+  // 2. su globo
+  if(I.globo && C.red === 'yo'){
+    if(C.mantiene && !I.profundo) C.log.unshift('☂️ Os globean, pero <b>seguís arriba</b>');
+    else { C.red = 'el'; C.log.unshift('☂️ Globo perfecto: <b>os quitan la red</b>'); }
+  }
+  // 3. vuestro globo
+  if(C.globoPend && C.red === 'el'){
+    const leido = R.rasgo === 'lectura' && C.globosLeidos === 0;
+    if(leido){ C.globosLeidos++; C.log.unshift('📖 Os leen el globo y <b>falla</b>'); }
+    else if(I.bandeja && C.globoPend < 2) C.log.unshift('🍽️ Contestan con bandeja: <b>el globo no basta</b>');
+    else { C.red = 'yo'; C.log.unshift('☂️ Vuestro globo entra: <b>la red es vuestra</b>'); }
+  }
+  // 4. el remate que no remató
+  if(C.arriesga && C.red === 'yo'){ C.red = 'el'; C.log.unshift('🚀 El remate no cerró el punto y <b>perdéis la red</b>'); }
+  // 5. los reyes de la red cobran por tenerla
+  if(R.rasgo === 'reyes' && C.red === 'el'){ C.dom -= 1; C.log.unshift('👑 Reyes de la red: <b>−1</b>'); }
+  if(C.dom <= -C.meta){ C.fin = 'el'; acabarPunto(); return; }
+  nuevoTurno(C, false);
+  guardar(); render();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PARTIDO · TORNEO · TEMPORADA
+   ═══════════════════════════════════════════════════════════════ */
+function acabarPunto(){
+  const P = S.partido, C = P.punto, j = S.j;
+  const gane = C.fin === 'yo';
+  if(P.esOro){ j.orosJ++; if(gane) j.orosG++; }
+  P.claves[gane ? 'yo' : 'el']++;
+  P.ultimo = { gane, oro:P.esOro, turnos:C.turno, log:C.log.slice(0,4), clave:nombreClave(P, true) };
+  j.piernas = clamp(j.piernas - 4, 0, j.piernasMax);
+  P.saca = P.saca === 'yo' ? 'el' : 'yo';
+  P.punto = null;
+  if(P.claves.yo >= CLAVES || P.claves.el >= CLAVES){ finPartido(P.claves.yo >= CLAVES); return; }
+  P.fase = 'entre';
+  guardar(); render();
+}
+function nombreClave(P, pasado){
+  const {yo, el} = P.claves;
+  if(!pasado && yo === CLAVES-1 && el === CLAVES-1) return 'PUNTO DE ORO · BOLA DE PARTIDO';
+  if(!pasado && yo === CLAVES-1) return 'BOLA DE PARTIDO';
+  if(!pasado && el === CLAVES-1) return 'BOLA DE PARTIDO EN CONTRA';
+  return ['BOLA DE BREAK','BOLA DE SET','PUNTO CLAVE','PUNTO CLAVE','PUNTO CLAVE'][Math.max(0, yo+el-(pasado?1:0))];
+}
+function siguientePunto(){
+  const P = S.partido;
+  P.esOro = P.claves.yo === CLAVES-1 && P.claves.el === CLAVES-1;
+  if(P.esOro && !P.eleccionOro){ P.fase = 'oro'; guardar(); render(); return; }
+  P.fase = 'punto'; crearPunto(); guardar(); render();
+}
+function elegirOro(eleccion){ S.partido.eleccionOro = eleccion; S.partido.fase = 'punto'; crearPunto(); guardar(); render(); }
+
+function empezarPartido(){
+  const TO = S.torneo;
+  S.partido = { rival:nuevoRival(TO.tier, TO.ronda, TO.rondas), claves:{yo:0, el:0}, saca: Math.random()<.5 ? 'yo' : 'el',
+                esOro:false, eleccionOro:null, fase:'previa', punto:null, ultimo:null, gano:null };
+  S.pantalla = 'partido'; guardar(); render();
+}
+function marcadorFinal(P){
+  const g = P.claves.yo > P.claves.el, dif = Math.abs(P.claves.yo - P.claves.el);
+  const set = (gano, apretado) => { const s = apretado ? pick(['7-5','7-6','6-4']) : pick(['6-2','6-3','6-4']); return gano ? s : s.split('-').reverse().join('-'); };
+  if(dif === 3) return set(g,false) + '  ' + set(g,false);
+  if(dif === 2) return set(g,true) + '  ' + set(g,false);
+  return set(g,true) + '  ' + set(!g,true) + '  ' + set(g,true);
+}
+function finPartido(gane){
+  const j = S.j, TO = S.torneo, P = S.partido;
+  j.pj++;
+  if(gane){ j.pg++; j.racha = (j.racha||0) + 1; } else { j.pp++; j.racha = 0; }
+  if(j.pareja) j.pareja.quimica = clamp(j.pareja.quimica + (gane ? 8 : -3), 0, 100);
+  if(gane && tieneMaterial('paletero')) j.dinero += 60;
+  if(gane && tieneMaterial('isotonica')) j.piernas = clamp(j.piernas + 15, 0, j.piernasMax);
+  /* Las piernas cansadas se notan en el mazo: se cuelan golpes que no se pueden jugar */
+  const pesadas = j.mazo.filter(e=>e==='piernas').length;
+  const deberian = j.piernas < 25 ? 2 : j.piernas < 50 ? 1 : 0;
+  for(let i=pesadas; i<deberian; i++) j.mazo.push('piernas');
+  P.marcador = marcadorFinal(P);
+  P.gano = gane; P.fase = 'fin';
+  TO.partidos.push({ rival:P.rival, gano:gane, marcador:P.marcador, ronda:NOM_RONDA[TO.rondas][TO.ronda] });
+  if(gane){ TO.ronda++; if(TO.ronda >= TO.rondas) TO.campeon = true; } else TO.eliminado = true;
+  guardar(); render();
+}
+function trasPartido(){
+  const TO = S.torneo;
+  if(TO.campeon || TO.eliminado) finTorneo(); else abrirPremio();
+}
+
+function empezarTorneo(op){
+  const T = TIERS[op.tier];
+  S.torneo = { tier:op.tier, nom:op.nom, ciudad:op.ciudad, rondas:T.rondas, ronda:0, partidos:[], campeon:false, eliminado:false, wildcard:!!op.wildcard };
+  S.pantalla = 'torneo'; guardar(); render();
+}
+function recalcRank(j){
+  const ult = j.puntosHist.slice(-8);
+  j.ranking = rankDePuntos(ult.reduce((a,x)=>a+x.pts, 0));
+  if(j.ranking && (!j.mejorRank || j.ranking < j.mejorRank)) j.mejorRank = j.ranking;
+}
+function finTorneo(){
+  const j = S.j, TO = S.torneo, T = TIERS[TO.tier];
+  const idx = TO.campeon ? 0 : (T.rondas - TO.ronda);
+  const pts = T.pts[Math.min(idx, T.pts.length-1)] || 0;
+  const prem = Math.round(T.prem * [1, .55, .3, .15, .06][Math.min(idx, 4)] / 10);
+  const antes = j.ranking;
+  j.stops++;
+  j.puntosHist.push({pts, stop:j.stops});
+  recalcRank(j);
+  j.dinero += prem;
+  j.mazo = j.mazo.filter(e=>e!=='palaNueva');
+  if(TO.campeon){
+    j.titulos.push({nom:TO.nom, tier:TO.tier, t:j.temporadaN, edad:j.edad, pareja:j.pareja ? j.pareja.nombre : null});
+    j.hist.push({t:j.temporadaN, txt:`🏆 ${gx('Campeón','Campeona')} · ${TO.nom}`});
+  }
+  S.finT = { pts, prem, antes, campeon:TO.campeon, ronda: TO.campeon ? gx('CAMPEÓN','CAMPEONA') : idx===1 ? 'FINALISTA' : idx===2 ? 'SEMIFINAL' : idx===3 ? 'CUARTOS' : 'OCTAVOS' };
+  S.pantalla = 'finTorneo'; guardar(); render();
+}
+
+/* ── La temporada: seis paradas, y en cada una eliges qué hacer ── */
+const PASOS = 6;
+function tiersAccesibles(j){ const r = j.ranking || 99999; return ORDEN_TIER.filter(t => t==='FIP1' || TIERS[t].acc >= r); }
+function opcionTorneo(tier, etiqueta, wildcard){
+  const mj = tier === 'MJ' ? pick(MAJORS) : null;
+  const ciudad = mj ? mj[1] : pick(SEDES);
+  return { tipo:'torneo', tier, etiqueta, ciudad, wildcard:!!wildcard, nom: mj ? mj[0] : `${TIERS[tier].nom} de ${ciudad}` };
+}
+function generarOpciones(paso){
+  const acc = tiersAccesibles(S.j);
+  const nivel = acc[acc.length-1], iN = ORDEN_TIER.indexOf(nivel);
+  const encima = ORDEN_TIER[Math.min(iN+1, ORDEN_TIER.length-1)];
+  const debajo = ORDEN_TIER[Math.max(iN-1, 0)];
+  if(paso === PASOS-1){
+    const ops = [opcionTorneo(nivel, 'EL GRANDE DE LA TEMPORADA')];
+    if(encima !== nivel) ops.push(opcionTorneo(encima, 'CON INVITACIÓN · MÁS DURO', true));
+    return ops;
+  }
+  if(paso === 0 && debajo !== nivel){
+    /* Cada temporada empiezas con el mazo inicial: el primer torneo deja arrancar desde abajo */
+    return [opcionTorneo(debajo, 'PARA ARRANCAR LA TEMPORADA'), opcionTorneo(nivel, 'A TU NIVEL'), {tipo: pick(['stage','pareja','patro','imprevisto'])}];
+  }
+  if(paso % 2 === 0){
+    const ops = [opcionTorneo(nivel, 'A TU NIVEL')];
+    ops.push(encima !== nivel ? opcionTorneo(encima, 'UN ESCALÓN POR ENCIMA', true) : opcionTorneo(debajo, 'PARA COGER CONFIANZA'));
+    ops.push({tipo: pick(['stage','pareja','patro','imprevisto'])});
+    return ops;
+  }
+  return barajar(['stage','pareja','patro','imprevisto']).slice(0,2).map(t=>({tipo:t})).concat([opcionTorneo(nivel, 'A TU NIVEL')]);
+}
+function nuevaTemporada(){
+  S.temporada = { n:S.j.temporadaN, paso:0, hechas:[], opciones:null };
+  S.temporada.opciones = generarOpciones(0);
+}
+function elegirOpcion(i){
+  const op = S.temporada.opciones[i];
+  if(!op) return;
+  if(op.tipo === 'torneo') return empezarTorneo(op);
+  if(op.tipo === 'stage') return abrirPremio(['mejorar','quitar','fisio'], 'paso', '🏋️ Stage de entrenamiento');
+  if(op.tipo === 'pareja') return abrirPremio(['cena','cruce','fisio'], 'paso', '🤝 Semana con tu pareja');
+  if(op.tipo === 'patro') return abrirTienda();
+  if(op.tipo === 'imprevisto') return abrirImprevisto();
+}
+function siguientePaso(resumen){
+  const T = S.temporada;
+  T.hechas.push(resumen || '·');
+  T.paso++;
+  S.torneo = null; S.partido = null;
+  if(T.paso >= PASOS){ finTemporada(); return; }
+  T.opciones = generarOpciones(T.paso);
+  S.pantalla = 'temporada'; guardar(); render();
+}
+
+/* ── Crear la carrera y elegir pareja ── */
+function nuevoJugador(cfg){
+  const p = paisPorId(cfg.pais);
+  return { nombre:cfg.nombre, genero:cfg.genero, pais:p.id, cod:p.cod, posicion:cfg.posicion, estilo:cfg.estilo,
+    edad:18, temporadaN:1, dinero:150, piernas:100, piernasMax:100,
+    mazo:mazoInicial(cfg.estilo, cfg.posicion), materiales:[], pareja:null, firma:[],
+    puntosHist:[], ranking:null, mejorRank:null, titulos:[], pj:0, pg:0, pp:0, orosG:0, orosJ:0, racha:0,
+    hist:[], stops:0, retirado:false, parejasN:0 };
+}
+function candidatosPareja(j){
+  const estilos = Object.keys(ESTILOS), bien = estilos.filter(e=>encaja(j.estilo, e));
+  return barajar([pick(bien), pick(bien), pick(estilos)]).map(e => {
+    const p = nuevaPareja(e, j.genero); p.quimica = encaja(j.estilo, e) ? 35 : 10; return p;
+  });
+}
+function crearYEmpezar(){
+  const inp = $('#fnom');
+  const n = ((inp ? inp.value : CFG.nombre) || '').trim();
+  if(n.length < 2){ CFG.error = 'Escribe tu nombre para empezar.'; render(); return; }
+  CFG.nombre = n; CFG.error = null;
+  S.j = nuevoJugador(CFG);
+  S.candidatos = candidatosPareja(S.j);
+  S.pantalla = 'pareja'; guardar(); render();
+}
+function elegirPareja(i){
+  const j = S.j;
+  if(i === 'mantener') j.pareja.temporadas++;
+  else { if(j.pareja) j.parejasN++; j.pareja = S.candidatos[i]; }
+  S.candidatos = null;
+  nuevaTemporada();
+  S.msgs = [`🏓 <b>Temporada ${j.temporadaN}.</b> ${j.edad} años, ${j.ranking ? '#'+j.ranking+' del mundo' : 'sin ranking'}, y ${esc(j.pareja.nombre)} al otro lado. Seis paradas: tú eliges el camino.`];
+  S.pantalla = 'temporada'; guardar(); render();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ENTRE PARTIDOS · PATROCINADOR · IMPREVISTOS
+   ═══════════════════════════════════════════════════════════════ */
+const PREMIOS = {
+  golpe:  {ic:'🃏', t:'Golpe nuevo',        d:'Elige 1 de 3 golpes para tu mazo.'},
+  mejorar:{ic:'⬆️', t:'Pulir un golpe',     d:'Mejora un golpe de tu mazo.'},
+  quitar: {ic:'✂️', t:'Limpiar el mazo',    d:'Quita un golpe. Menos relleno, más golpes buenos en la mano.'},
+  fisio:  {ic:'💆', t:'Fisio',              d:'+45 piernas y se van las piernas pesadas.'},
+  cena:   {ic:'🍝', t:'Cena con tu pareja', d:'+20 de química.'},
+  dinero: {ic:'💰', t:'Exhibición pagada',  d:'Dinero para el patrocinador.'},
+  cruce:  {ic:'✖️', t:'Ensayar el cruce',   d:'Añade un Cruce+ a tu mazo.'},
+};
+function draftCartas(){
+  const niv = S.torneo ? TIERS[S.torneo.tier].nivel : Math.min(8, (S.j.temporadaN-1)*1.5 + 1);
+  const pool = Object.keys(CARTAS).filter(id => ['comun','rara','epica'].includes(CARTAS[id].rareza) && id !== 'cruce');
+  const peso = id => ({comun:6, rara:2 + niv*.5, epica:.4 + niv*.25})[CARTAS[id].rareza];
+  const out = [];
+  while(out.length < 3) out.push(pesado(pool.filter(x=>!out.includes(x)).map(id=>({id, p:peso(id)}))).id);
+  return out.map(id => Math.random() < .1 + niv*.03 ? id+'+' : id);
+}
+function abrirPremio(opciones, volver, titulo){
+  if(!opciones){
+    opciones = ['golpe'].concat(barajar(['mejorar','quitar','fisio','cena','dinero']).slice(0,2));
+    volver = 'partido';
+  }
+  S.premio = { opciones, volver, titulo: titulo || '✅ Pasáis de ronda', sub:null, cartas:null };
+  S.pantalla = 'premio'; guardar(); render();
+}
+function elegirPremio(tipo){
+  const j = S.j, P = S.premio;
+  if(tipo === 'golpe'){ P.sub = 'draft'; P.cartas = draftCartas(); return render(); }
+  if(tipo === 'mejorar'){ P.sub = 'mejorar'; return render(); }
+  if(tipo === 'quitar'){ P.sub = 'quitar'; return render(); }
+  if(tipo === 'fisio'){ j.piernas = clamp(j.piernas + 45, 0, j.piernasMax); j.mazo = j.mazo.filter(e=>e!=='piernas'); return cerrarPremio('💆 Masaje, hielo y a dormir: <b>+45 piernas</b>.'); }
+  if(tipo === 'cena'){ if(j.pareja) j.pareja.quimica = clamp(j.pareja.quimica + 20, 0, 100); return cerrarPremio(`🍝 Cena larga con ${esc(j.pareja.nombre)}: <b>+20 química</b>.`); }
+  if(tipo === 'cruce'){ j.mazo.push('cruce+'); return cerrarPremio('✖️ Toda la semana ensayando el cruce: <b>Cruce+</b> al mazo.'); }
+  if(tipo === 'dinero'){ const d = 60 + Math.round((S.torneo ? TIERS[S.torneo.tier].nivel : 2) * 35); j.dinero += d; return cerrarPremio(`💰 Exhibición en un club privado: <b>+${money(d)}</b>.`); }
+}
+function tomarCarta(i){ const e = S.premio.cartas[i]; S.j.mazo.push(e); cerrarPremio(`🃏 <b>${nomCarta(e)}</b> entra en tu mazo.`); }
+function mejorables(){ return S.j.mazo.map((e,i)=>({e,i})).filter(x => !x.e.endsWith('+') && CARTAS[parsearCarta(x.e).id].zona !== 'muerta'); }
+function mejorarCarta(i){ const e = S.j.mazo[i]; S.j.mazo[i] = e + '+'; if(S.tienda) { S.tienda.sub = null; return render(); } cerrarPremio(`⬆️ <b>${nomCarta(e)}</b> ahora es <b>${nomCarta(e+'+')}</b>.`); }
+function quitarCarta(i){
+  const e = S.j.mazo[i]; S.j.mazo.splice(i, 1);
+  if(S.tienda){ S.tienda.sub = null; S.msgs = [`✂️ Fuera <b>${nomCarta(e)}</b>.`]; return render(); }
+  cerrarPremio(`✂️ Fuera <b>${nomCarta(e)}</b>. El mazo queda en ${S.j.mazo.length} golpes.`);
+}
+function cerrarPremio(msg){
+  const P = S.premio;
+  S.premio = null;
+  S.msgs = msg ? [msg] : [];
+  if(P && P.volver === 'paso') siguientePaso(P.titulo);
+  else empezarPartido();
+}
+
+/* ── El patrocinador: la tienda del circuito ── */
+function abrirTienda(){
+  const j = S.j;
+  j.dinero += 80;
+  const precio = e => ({comun:55, rara:95, epica:150})[CARTAS[parsearCarta(e).id].rareza] + (e.endsWith('+') ? 35 : 0);
+  const libres = Object.keys(MATERIALES).filter(id => !j.materiales.includes(id));
+  S.tienda = { cartas: draftCartas().map(e=>({e, precio:precio(e), vendida:false})),
+               materiales: barajar(libres).slice(0,2).map(id=>({id, vendida:false})),
+               quitarUsado:false, sub:null };
+  S.msgs = ['💰 Tu patrocinador te pasa <b>80€</b> para material.'];
+  S.pantalla = 'tienda'; guardar(); render();
+}
+function comprarCarta(i){ const j = S.j, it = S.tienda.cartas[i]; if(it.vendida || j.dinero < it.precio) return; j.dinero -= it.precio; it.vendida = true; j.mazo.push(it.e); guardar(); render(); }
+function comprarMaterial(i){ const j = S.j, it = S.tienda.materiales[i], M = MATERIALES[it.id]; if(it.vendida || j.dinero < M.precio) return; j.dinero -= M.precio; it.vendida = true; j.materiales.push(it.id); guardar(); render(); }
+function comprarQuitar(){ const j = S.j; if(S.tienda.quitarUsado || j.dinero < 60) return; j.dinero -= 60; S.tienda.quitarUsado = true; S.tienda.sub = 'quitar'; render(); }
+function salirTienda(){ S.tienda = null; siguientePaso('💰 Patrocinador'); }
+
+/* ── Imprevistos: decisiones sin dado, con consecuencias en el mazo ── */
+const IMPREVISTOS = [
+  {tit:'Una pala nueva a mitad de temporada', txt:'Tu marca te manda el modelo del año que viene. Pesa distinto y todavía no la controlas.',
+   ops:[{t:'Estrenarla ya', d:'Pala de carbono, pero una Pala sin rodar hasta acabar el siguiente torneo.', f:j=>{ if(!j.materiales.includes('carbono')) j.materiales.push('carbono'); j.mazo.push('palaNueva'); return '🏓 <b>Pala de carbono</b> para siempre. Y un golpe muerto hasta que la domes.'; }},
+        {t:'Seguir con la mía', d:'+15 piernas.', f:j=>{ j.piernas = clamp(j.piernas+15,0,j.piernasMax); return '👌 La de siempre. Descansas: <b>+15 piernas</b>.'; }}]},
+  {tit:'Discusión en el vestuario', txt:'Perdisteis un punto de oro por no hablaros y tu pareja lo suelta delante de todos.',
+   ops:[{t:'Hablarlo a solas', d:'+15 química.', f:j=>{ j.pareja.quimica = clamp(j.pareja.quimica+15,0,100); return '🤝 Una hora en el parking y todo aclarado: <b>+15 química</b>.'; }},
+        {t:'Usar la rabia', d:'−10 química, pero un ¡Vamos!+ al mazo.', f:j=>{ j.pareja.quimica = clamp(j.pareja.quimica-10,0,100); j.mazo.push('vamos+'); return '🔥 No os habláis, pero salís con fuego: <b>¡Vamos!+</b>.'; }}]},
+  {tit:'Sparring con la pareja número 1', txt:'Te llaman para una semana de entrenamientos. Te van a pasar por encima.',
+   ops:[{t:'Ir', d:'Un golpe raro al mazo. Y una semana de palizas: piernas pesadas.', f:j=>{ const r = pick(Object.keys(CARTAS).filter(id=>CARTAS[id].rareza==='rara' && id!=='cruce')); j.mazo.push(r, 'piernas'); return `🎓 Aprendes <b>${CARTAS[r].nom}</b>. Las piernas no opinan igual.`; }},
+        {t:'No, tengo mi plan', d:'+25 piernas.', f:j=>{ j.piernas = clamp(j.piernas+25,0,j.piernasMax); return '🗓️ Tu plan, tu ritmo: <b>+25 piernas</b>.'; }}]},
+  {tit:'Un club te ofrece un bolo', txt:'Clínic para socios el fin de semana. Pagan bien, pero es de lunes a domingo.',
+   ops:[{t:'Aceptar', d:'+180€. −20 piernas.', f:j=>{ j.dinero += 180; j.piernas = clamp(j.piernas-20,0,j.piernasMax); return '💶 <b>+180€</b> y la espalda cargada.'; }},
+        {t:'Rechazar', d:'Pulir un golpe gratis.', f:j=>{ const m = mejorables(); if(m.length){ const x = pick(m); j.mazo[x.i] += '+'; return `⬆️ Te quedas entrenando: <b>${nomCarta(j.mazo[x.i])}</b>.`; } return 'Te quedas entrenando.'; }}]},
+  {tit:'Vídeo-análisis', txt:'Un analista te ofrece desmontar tus últimos partidos golpe a golpe.',
+   ops:[{t:'Pagar 90€', d:'Quita dos golpes básicos de tu mazo.', f:j=>{ if(j.dinero < 90) return 'No te alcanza. Otra vez será.'; j.dinero -= 90; let n=0; for(const b of ['volea','defensa','bandeja','globo']){ const k=j.mazo.indexOf(b); if(k>=0 && n<2){ j.mazo.splice(k,1); n++; } } return `📹 Fuera ${n} golpes de relleno. El mazo queda en ${j.mazo.length}.`; }},
+        {t:'Mirarlo por mi cuenta', d:'Nada cambia.', f:()=> '📺 Tres horas de vídeo y una conclusión: hay que globear mejor.'}]},
+  {tit:'Noche en la ciudad', txt:'Final del torneo del club, cena de gala y la ciudad entera de fiesta.',
+   ops:[{t:'Salir', d:'+20 química, −25 piernas.', f:j=>{ j.pareja.quimica = clamp(j.pareja.quimica+20,0,100); j.piernas = clamp(j.piernas-25,0,j.piernasMax); return '🌙 Volvéis a las cinco: <b>+20 química</b> y piernas de trapo.'; }},
+        {t:'A dormir', d:'+25 piernas.', f:j=>{ j.piernas = clamp(j.piernas+25,0,j.piernasMax); return '😴 Diez horas de sueño: <b>+25 piernas</b>.'; }}]},
+];
+function abrirImprevisto(){ S.imprevisto = { i: ri(0, IMPREVISTOS.length-1), res:null }; S.pantalla = 'imprevisto'; guardar(); render(); }
+function elegirImprevisto(k){ const I = S.imprevisto, E = IMPREVISTOS[I.i]; if(I.res) return; I.res = E.ops[k].f(S.j); guardar(); render(); }
+function cerrarImprevisto(){ S.imprevisto = null; siguientePaso('❓ Imprevisto'); }
+
+/* ═══════════════════════════════════════════════════════════════
+   FIN DE TEMPORADA · RETIRO · GUARDADO
+   ═══════════════════════════════════════════════════════════════ */
+function finTemporada(){
+  const j = S.j;
+  S.finTemp = { n:j.temporadaN, rank:j.ranking, titulos:j.titulos.filter(t=>t.t===j.temporadaN).length, firmada:null };
+  S.pantalla = 'finTemporada'; guardar(); render();
+}
+/* El golpe de firma: te lo llevas a todas las temporadas siguientes */
+function elegirFirma(i){
+  const j = S.j, e = j.mazo[i];
+  if(S.finTemp.firmada || !e || CARTAS[parsearCarta(e).id].zona === 'muerta') return;
+  if(j.firma.length >= 4) j.firma.shift();
+  j.firma.push(e); S.finTemp.firmada = e;
+  guardar(); render();
+}
+function siguienteTemporada(){
+  const j = S.j;
+  j.edad++; j.temporadaN++;
+  if(j.edad >= 36){ retirarse(); return; }
+  j.piernasMax = j.edad >= 31 ? 100 - (j.edad-30)*7 : 100;
+  j.piernas = j.piernasMax;
+  j.mazo = mazoInicial(j.estilo, j.posicion).concat(j.firma);
+  S.finTemp = null;
+  S.candidatos = candidatosPareja(j);
+  S.pantalla = 'pareja'; guardar(); render();
+}
+function calcularLegado(j){
+  const n = t => j.titulos.filter(x=>x.tier===t).length;
+  const b = j.mejorRank || 9999;
+  let p = n('MJ')*40 + n('P1')*15 + n('P2')*6 + j.titulos.length*2;
+  p += b<=1?60 : b<=5?40 : b<=10?28 : b<=25?18 : b<=60?10 : b<=150?5 : b<=400?2 : 0;
+  p += Math.min(15, Math.round(j.orosG/4));
+  /* Escalones medidos contra carreras reales del juego: siete Majors ya son una leyenda */
+  const R = p>=600?['LA CABRA 🐐','No hay discusión: cuando se hable del mejor de la historia, se dirá tu nombre.']
+          : p>=330?['LEYENDA','Una de las grandes carreras del pádel.']
+          : p>=150?['ENORME CARRERA','Estuviste arriba de verdad y ganaste cosas grandes.']
+          : p>=60 ?['CARRERA SÓLIDA','Viviste del pádel, jugaste los grandes y levantaste trofeos.']
+          : p>=15 ?['PROFESIONAL','Fuiste profesional. Suena poco hasta que ves cuánta gente no llega.']
+          :        ['LO INTENTASTE','No cuajó, pero estuviste ahí cuando casi todos lo dejaron.'];
+  return {p, rango:R[0], txt:R[1]};
+}
+function retirarse(){ const j = S.j; j.retirado = true; S.legado = calcularLegado(j); S.pantalla = 'retiro'; guardar(); render(); }
+
+function guardar(){
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify({j:S.j, temporada:S.temporada, torneo:S.torneo, partido:S.partido,
+    premio:S.premio, tienda:S.tienda, candidatos:S.candidatos, imprevisto:S.imprevisto, finT:S.finT, finTemp:S.finTemp,
+    legado:S.legado, pantalla:S.pantalla})); }catch(e){}
+}
+function cargar(){ try{ const r = localStorage.getItem(SAVE_KEY); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
+function borrarSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+function continuarPartida(){
+  const d = cargar();
+  if(!d || !d.j){ S.pantalla = 'inicio'; return render(); }
+  Object.assign(S, d, {msgs:[], pantallaPrevia:null});
+  if(!VISTAS[S.pantalla]) S.pantalla = 'temporada';
+  render();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PANTALLAS
+   ═══════════════════════════════════════════════════════════════ */
+const VISTAS = { inicio:vInicio, crear:vCrear, pareja:vPareja, temporada:vTemporada, torneo:vTorneo, partido:vPartido,
+  premio:vPremio, tienda:vTienda, imprevisto:vImprevisto, finTorneo:vFinTorneo, finTemporada:vFinTemporada, retiro:vRetiro, mazo:vMazo };
+
+function render(){
+  const p = S.pantalla;
+  const misma = S.pantallaPrevia === p;
+  S.pantallaPrevia = p;
+  const y = window.scrollY || 0;
+  const app = $('#app');
+  app.classList.toggle('sin-entrada', misma);
+  app.innerHTML = topbar() + (VISTAS[p] || vInicio)();
+  window.scrollTo(0, misma ? y : 0);
+}
+function topbar(){
+  const j = S.j;
+  let h = `<div class="topbar"><div class="brand"><span class="pala"></span><b>LA CABRA</b><small>GOLPE A GOLPE</small></div>`;
+  if(j && !['inicio','crear'].includes(S.pantalla)){
+    h += `<div class="hud">
+      <div><span>RANKING</span><b>${j.ranking ? '#'+j.ranking : '—'}</b></div>
+      <div><span>PIERNAS</span><b style="color:${j.piernas>=50?'var(--text)':j.piernas>=25?'var(--gold)':'var(--danger)'}">${Math.round(j.piernas)}</b></div>
+      <div><span>MAZO</span><b>${j.mazo.length}</b></div>
+      <div><span>BOLSILLO</span><b>${money(j.dinero)}</b></div>
+    </div>`;
+  }
+  return h + `</div>`;
+}
+function mensajes(){ const h = (S.msgs||[]).map(m=>`<div class="log">${m}</div>`).join(''); S.msgs = []; return h; }
+function fichaPais(cod){ return `<span class="cod">${esc(cod||'—')}</span>`; }
+function badgeTier(t){ return `<span class="tier ${TIERS[t].cls}">${TIERS[t].etq}</span>`; }
+function nomPareja(p){ return p ? `${esc(p.nombre)} «${esc(p.apodo)}»` : '—'; }
+function verMazo(){ S.volverMazo = S.pantalla; S.pantalla = 'mazo'; render(); }
+
+function cartaHTML(e, o){
+  o = o || {};
+  const {m, def} = parsearCarta(e);
+  const coste = o.coste != null ? o.coste : costeCarta(e);
+  const cls = ['carta', def.zona, o.motivo ? 'no' : '', def.zona==='muerta' ? 'muerta' : '', o.grande ? 'grande' : ''].join(' ');
+  const acc = o.onclick ? (o.motivo ? 'disabled' : `onclick="${o.onclick}"`) : '';
+  return `<button class="${cls}" ${acc} aria-label="${esc(def.nom)}">
+    ${def.zona!=='muerta' ? `<span class="coste">${coste}</span>` : ''}
+    <span class="zona-c">${ZONA_NOM[def.zona]}</span>
+    <span class="ic">${def.ic}</span>
+    <span class="nm">${def.nom}${m ? '<span class="mas">+</span>' : ''}</span>
+    <span class="ef">${def.txt(m)}</span>
+    ${o.motivo ? `<span class="ef" style="color:var(--danger);font-weight:800">${o.motivo}</span>` : ''}
+  </button>`;
+}
+
+/* ── INICIO ── */
+function vInicio(){
+  const save = cargar();
+  return `<div class="fade">
+  <div class="card event-hero">
+    <div class="eyebrow">PÁDEL · CARTAS · CARRERA</div>
+    <div class="title-xl" style="margin:6px 0 8px">CADA PUNTO<br>LO JUEGAS TÚ</div>
+    <p class="sub" style="margin:0">Aquí no se simula nada importante. Los puntos clave de cada partido los juegas <b>golpe a golpe</b>: bandejas, víboras, globos y salidas de pared, con la pareja rival enseñándote lo que va a hacer.</p>
+  </div>
+  <div class="card">
+    <div class="eyebrow">CÓMO SE JUEGA</div><div style="height:6px"></div>
+    <div class="li"><span style="font-size:18px">🕸️</span><div class="g"><b>La red manda</b><span>Con la red juegas golpes 🔺 que empujan el dominio. Sin ella, 🔻 para aguantar y el globo para subir.</span></div></div>
+    <div class="li"><span style="font-size:18px">👀</span><div class="g"><b>Sabes lo que harán</b><span>La pareja rival enseña su golpe antes de tu turno. Sin dados: tú decides cómo contestar.</span></div></div>
+    <div class="li"><span style="font-size:18px">🎾</span><div class="g"><b>Partidos a 3 puntos clave</b><span>Bola de break, bola de set… y si llegáis 2-2, punto de oro.</span></div></div>
+    <div class="li"><span style="font-size:18px">🃏</span><div class="g"><b>Tu mazo es tu juego</b><span>Ganas golpes, los pules, eliges pareja y material. Cada temporada, un camino distinto.</span></div></div>
+  </div>
+  ${save && save.j && !save.j.retirado
+    ? `<button class="btn" onclick="continuarPartida()">CONTINUAR · ${esc(save.j.nombre.toUpperCase())} · ${save.j.ranking?'#'+save.j.ranking:'SIN RANKING'}</button>
+       <div style="height:8px"></div>
+       ${S.pidiendo ? `<div class="log bad">Se borra la carrera de <b>${esc(save.j.nombre)}</b>.</div>
+         <div class="row"><button class="btn danger sm" onclick="borrarSave();S.pidiendo=false;S.pantalla='crear';render()">SÍ, EMPEZAR DE CERO</button>
+         <button class="btn ghost sm" onclick="S.pidiendo=false;render()">CANCELAR</button></div>`
+       : `<button class="btn ghost" onclick="S.pidiendo=true;render()">NUEVA CARRERA</button>`}`
+    : `<button class="btn" onclick="S.pantalla='crear';render()">EMPEZAR MI CARRERA</button>`}
+  <p class="muted center" style="margin-top:12px">Se guarda en este dispositivo, hasta en mitad de un punto.</p>
+  </div>`;
+}
+
+/* ── CREAR ── */
+function vCrear(){
+  const mazo = mazoInicial(CFG.estilo, CFG.posicion);
+  return `<div class="fade">
+  <div class="card">
+    <div class="eyebrow">TU JUGADOR</div>
+    <label class="f">Circuito</label>
+    <div class="g2">
+      <button class="opt ${CFG.genero==='M'?'on':''}" style="justify-content:center" onclick="CFG.genero='M';render()"><span class="t">MASCULINO</span></button>
+      <button class="opt ${CFG.genero==='F'?'on':''}" style="justify-content:center" onclick="CFG.genero='F';render()"><span class="t">FEMENINO</span></button>
+    </div>
+    <label class="f" for="fnom">Nombre</label>
+    <input type="text" id="fnom" maxlength="24" value="${esc(CFG.nombre)}" placeholder="${CFG.genero==='F'?'Ej: Delfina Ruiz':'Ej: Martín Belluati'}" oninput="CFG.nombre=this.value">
+    ${CFG.error ? `<p style="color:var(--danger);font-size:12.5px;font-weight:700;margin:6px 0 0">${CFG.error}</p>` : ''}
+    <label class="f" for="fpais">País</label>
+    <select id="fpais" onchange="CFG.pais=this.value">${PAISES.slice().sort((a,b)=>a.nom.localeCompare(b.nom)).map(p=>`<option value="${p.id}" ${p.id===CFG.pais?'selected':''}>${p.nom}</option>`).join('')}</select>
+    <label class="f">Lado de la pista</label>
+    <div class="g2">${Object.keys(POSICIONES).map(k=>`<button class="opt ${CFG.posicion===k?'on':''}" onclick="CFG.posicion='${k}';render()"><span class="ic">${POSICIONES[k].ic}</span><span><span class="t">${POSICIONES[k].nom}</span><span class="d">${POSICIONES[k].d}</span></span></button>`).join('')}</div>
+  </div>
+  <div class="card">
+    <div class="eyebrow">ESTILO · DECIDE TU MAZO INICIAL</div><div style="height:8px"></div>
+    ${Object.keys(ESTILOS).map(k=>`<button class="opt ${CFG.estilo===k?'on':''}" onclick="CFG.estilo='${k}';render()"><span class="ic">${ESTILOS[k].ic}</span><span><span class="t">${ESTILOS[k].nom}</span><span class="d">${ESTILOS[k].d}</span></span></button>`).join('')}
+  </div>
+  <div class="card">
+    <div class="eyebrow">TU MAZO INICIAL · ${mazo.length} GOLPES</div>
+    <div class="mano">${mazo.map(e=>cartaHTML(e)).join('')}</div>
+  </div>
+  <button class="btn" onclick="crearYEmpezar()">ELEGIR PAREJA</button>
+  <div style="height:8px"></div>
+  <button class="btn ghost" onclick="S.pantalla='inicio';render()">VOLVER</button>
+  </div>`;
+}
+
+/* ── ELEGIR PAREJA ── */
+function vPareja(){
+  const j = S.j, actual = j.pareja;
+  const ficha = (p, onclick, etiqueta) => {
+    const bien = encaja(j.estilo, p.estilo);
+    return `<button class="opt" onclick="${onclick}">
+      <span class="ic">${ESTILOS[p.estilo].ic}</span>
+      <span style="flex:1;min-width:0">
+        <span class="t">${fichaPais(p.flag)} ${nomPareja(p)} ${etiqueta ? `<span class="pill gold">${etiqueta}</span>` : ''}</span>
+        <span class="d">${ESTILOS[p.estilo].nom} · química ${p.quimica}</span>
+        <span class="d" style="margin-top:4px"><b style="color:var(--accent)">${TIPOS_PAREJA[p.estilo].pasNom}:</b> ${TIPOS_PAREJA[p.estilo].pasTxt}</span>
+        <span class="d">Trae: ${p.cartas.map(nomCarta).join(' · ')}${p.quimica>=30?' · Cruce':''}</span>
+        <span class="d" style="font-weight:800;color:${bien?'var(--bien)':'var(--danger)'}">${bien?'🧩 Encaja contigo: uno cierra, otro sostiene':'⚠️ Jugáis igual: os vais a pisar'}</span>
+      </span></button>`;
+  };
+  return `<div class="fade">
+  <div class="card">
+    <div class="eyebrow">TEMPORADA ${j.temporadaN} · ${j.edad} AÑOS</div>
+    <div class="title-lg" style="margin:4px 0 4px">¿Con quién juegas?</div>
+    <p class="muted" style="margin:0">Tu pareja trae dos golpes y una pasiva. Con química 30 aprendéis el <b>Cruce</b>; la química crece ganando juntos y no se pierde si seguís.</p>
+  </div>
+  ${actual ? `<div class="card"><div class="eyebrow">SEGUIR CON TU PAREJA</div><div style="height:8px"></div>${ficha(actual, "elegirPareja('mantener')", 'QUÍMICA ' + actual.quimica)}</div>` : ''}
+  <div class="card"><div class="eyebrow">${actual ? 'O CAMBIAR' : 'QUIÉN ESTÁ LIBRE'}</div><div style="height:8px"></div>
+    ${S.candidatos.map((p,i)=>ficha(p, `elegirPareja(${i})`)).join('')}
+  </div></div>`;
+}
+
+/* ── LA TEMPORADA ── */
+const APOYO = {
+  stage:     {ic:'🏋️', t:'Stage de entrenamiento', d:'Pule o limpia tu mazo, o recupera piernas.'},
+  pareja:    {ic:'🤝', t:'Semana con tu pareja',   d:'Química, ensayar el cruce o descansar.'},
+  patro:     {ic:'💰', t:'Patrocinador',           d:'Te pasa 80€ y te deja comprar golpes y material.'},
+  imprevisto:{ic:'❓', t:'Imprevisto',              d:'Algo va a pasar. Tú decides cómo sale.'},
+};
+function vTemporada(){
+  const j = S.j, T = S.temporada;
+  return `<div class="fade">${mensajes()}
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+      <div><div class="eyebrow">TEMPORADA ${T.n} · ${j.edad} AÑOS</div><div class="title-lg" style="margin-top:3px">Parada ${T.paso+1} de ${PASOS}</div></div>
+      <span class="pill acc">${j.titulos.length} TÍTULO${j.titulos.length===1?'':'S'}</span>
+    </div>
+    <div class="ruta">${Array.from({length:PASOS},(_,i)=>`<i class="${i<T.paso?'hecha':i===T.paso?'ahora':''}"></i>`).join('')}</div>
+    <div class="hr"></div>
+    <div class="li" style="border:0;padding:0">
+      <span style="font-size:20px">${ESTILOS[j.pareja.estilo].ic}</span>
+      <div class="g"><b>${nomPareja(j.pareja)}</b><span>Química ${j.pareja.quimica}${j.pareja.quimica>=30?' · sabéis el Cruce':' · el Cruce llega con 30'}</span>
+        <div class="meter" style="margin-top:4px"><i style="width:${j.pareja.quimica}%;background:var(--accent)"></i></div></div>
+    </div>
+    ${j.materiales.length ? `<div style="margin-top:9px">${j.materiales.map(id=>`<span class="pill" style="margin:0 4px 4px 0" title="${esc(MATERIALES[id].txt)}">${MATERIALES[id].ic} ${MATERIALES[id].nom}</span>`).join('')}</div>` : ''}
+  </div>
+  <div class="card">
+    <div class="eyebrow">${T.paso===PASOS-1 ? 'ÚLTIMA PARADA · EL TORNEO QUE CIERRA EL AÑO' : '¿A DÓNDE VAS AHORA?'}</div><div style="height:8px"></div>
+    ${T.opciones.map((op,i)=>{
+      if(op.tipo !== 'torneo'){ const A = APOYO[op.tipo]; return `<button class="opt" onclick="elegirOpcion(${i})"><span class="ic">${A.ic}</span><span><span class="t">${A.t}</span><span class="d">${A.d}</span></span></button>`; }
+      const TT = TIERS[op.tier];
+      return `<button class="opt" onclick="elegirOpcion(${i})"><span class="ic">${op.tier==='MJ'?'🏛️':'🎾'}</span>
+        <span style="flex:1;min-width:0"><span class="t">${esc(op.nom)} ${badgeTier(op.tier)}</span>
+        <span class="d" style="color:${op.wildcard?'var(--gold)':'var(--text-2)'};font-weight:800">${op.etiqueta}</span>
+        <span class="d">${TT.rondas} partidos · campeón +${TT.pts[0]} pts · parejas de nivel ${Math.round(TT.nivel)}</span></span></button>`;
+    }).join('')}
+  </div>
+  <div class="row"><button class="btn ghost sm" onclick="verMazo()">🃏 VER MAZO</button></div>
+  </div>`;
+}
+
+/* ── TORNEO ── */
+function vTorneo(){
+  const TO = S.torneo, T = TIERS[TO.tier];
+  return `<div class="fade">${mensajes()}
+  <div class="card ${TO.tier==='MJ'?'oro-hero':'event-hero'}">
+    <div class="eyebrow">${T.nom}${TO.wildcard?' · CON INVITACIÓN':''}</div>
+    <div class="title-lg" style="margin:5px 0 6px">${esc(TO.nom)}</div>
+    <div class="ruta">${Array.from({length:TO.rondas},(_,i)=>`<i class="${i<TO.ronda?'hecha':i===TO.ronda?'ahora':''}"></i>`).join('')}</div>
+    <p class="muted" style="margin:8px 0 0">${NOM_RONDA[TO.rondas].join(' → ')} · Campeón: +${T.pts[0]} pts</p>
+  </div>
+  ${TO.partidos.map(p=>`<div class="log ${p.gano?'':'bad'}">${p.gano?'✅':'❌'} <b>${p.ronda}</b> · ${esc(p.rival.nombre)} / ${esc(p.rival.nombre2)} · ${p.marcador}</div>`).join('')}
+  <button class="btn" onclick="empezarPartido()">JUGAR ${NOM_RONDA[TO.rondas][TO.ronda]}</button>
+  <div style="height:8px"></div><button class="btn ghost sm" onclick="verMazo()">🃏 VER MAZO</button>
+  </div>`;
+}
+
+/* ── PARTIDO ── */
+function marcadorHTML(P){
+  const bolas = (n, ellos) => `<span class="bolas ${ellos?'ellos':''}">${Array.from({length:CLAVES},(_,i)=>`<i class="${i<n?'si':''}"></i>`).join('')}</span>`;
+  return `<div class="marcador">
+    <div class="lado"><span class="nom">${esc(S.j.nombre)} / ${esc(S.j.pareja.nombre)}</span>${bolas(P.claves.yo)}</div>
+    <div class="clave">${P.fase==='fin' ? P.marcador : nombreClave(P, false)}</div>
+    <div class="lado der"><span class="nom">${esc(P.rival.nombre)} / ${esc(P.rival.nombre2)}</span>${bolas(P.claves.el, true)}</div>
+  </div>`;
+}
+function rivalHTML(R){
+  return `<div class="li" style="border:0;padding:0">${fichaPais(R.flag)}
+    <div class="g"><b>${esc(R.nombre)} / ${esc(R.nombre2)}</b><span>Juegan a <b>${R.arq.nom}</b> · nivel ${R.nivel.toFixed(1)}</span></div></div>
+    ${R.rasgo ? `<div class="log gold" style="margin:9px 0 0">👑 <b>${RASGOS[R.rasgo].nom}:</b> ${RASGOS[R.rasgo].txt}</div>` : ''}`;
+}
+function pistaHTML(C){
+  const nuestra = C.red === 'yo';
+  return `<div class="pista">
+    <span class="linea" style="top:14%"></span><span class="linea" style="bottom:14%"></span>
+    <div class="zona arriba" style="align-items:${nuestra?'flex-start':'flex-end'};padding:${nuestra?'5px 0 0':'0 0 7px'}"><span class="ficha el">R</span><span class="ficha el">R</span></div>
+    <div class="zona abajo" style="align-items:${nuestra?'flex-start':'flex-end'};padding:${nuestra?'7px 0 0':'0 0 5px'}"><span class="ficha yo">TÚ</span><span class="ficha yo">P</span></div>
+    <span class="etq-red ${nuestra?'nuestra':'suya'}" style="${nuestra?'bottom:7px':'top:7px'}">${nuestra?'LA RED ES VUESTRA':'LA RED ES SUYA'}</span>
+  </div>`;
+}
+function dominioHTML(C){
+  const n = C.meta, celdas = [];
+  for(let v=-n; v<=n; v++){
+    let c = v===0 ? 'c' : '';
+    if(v>0 && C.dom>=v) c = 'v';
+    if(v<0 && C.dom<=v) c = 'r';
+    celdas.push(`<i class="${c}"></i>`);
+  }
+  return `<div class="dominio">${celdas.join('')}</div>
+    <div class="dom-leyenda"><span>ELLOS −${n}</span><span style="color:var(--text)">DOMINIO ${C.dom>0?'+':''}${C.dom}</span><span>+${n} VOSOTROS</span></div>`;
+}
+function consejo(C){
+  if(S.j.temporadaN > 1 || S.j.pj > 3) return '';
+  const tieneMantener = C.mano.some(e=>['bandeja','vibora','bandejaCort','cruce'].includes(parsearCarta(e).id));
+  let t = C.red === 'yo' ? `Tenéis la red: juega golpes 🔺 para empujar el dominio hasta +${C.meta}.`
+                         : 'Estáis abajo: cúbrete con golpes 🔻 y juega un Globo para subir a la red.';
+  if(C.intencion.globo && C.red==='yo') t = tieneMantener ? 'Os van a globear: juega una Bandeja o Víbora y os quedáis arriba.' : 'Os van a globear y no tienes con qué mantener la red: empuja todo lo que puedas.';
+  if(C.intencion.bandeja && C.red==='el') t = 'Van a hacer bandeja: un Globo normal no os sube este turno. Defiende.';
+  else if(C.globoPend && C.red==='el') t = 'Globo en el aire: al terminar el turno subís a la red. Cúbrete con lo que te quede.';
+  return `<div class="log gold" style="margin:8px 0 0">💡 ${t}</div>`;
+}
+function vPartido(){
+  const P = S.partido, j = S.j;
+  if(P.fase === 'previa') return `<div class="fade">${mensajes()}
+    <div class="card event-hero"><div class="eyebrow">${NOM_RONDA[S.torneo.rondas][S.torneo.ronda]} · ${esc(S.torneo.nom)}</div>
+      <div class="title-lg" style="margin:5px 0 9px">Enfrente</div>${rivalHTML(P.rival)}</div>
+    <div class="card"><div class="eyebrow">CÓMO VA</div><p class="sub" style="margin:6px 0 0">Gana quien se lleve <b>${CLAVES} puntos clave</b>. Cada punto se juega golpe a golpe; si llegáis ${CLAVES-1}-${CLAVES-1}, el último es <b>punto de oro</b>.</p></div>
+    <button class="btn" onclick="siguientePunto()">SALIR A LA PISTA</button></div>`;
+
+  if(P.fase === 'oro') return `<div class="fade">
+    <div class="card oro-hero">${marcadorHTML(P)}<div class="hr"></div>
+      <div class="title-xl" style="margin:2px 0 8px">🥇 PUNTO DE ORO</div>
+      <p class="sub" style="margin:0">${CLAVES-1}-${CLAVES-1}. Un solo punto, a <b>${META_ORO}</b> de dominio. En pádel el que resta elige: ¿cómo lo queréis jugar?</p></div>
+    <button class="opt" onclick="elegirOro('sacar')"><span class="ic">🕸️</span><span><span class="t">SACAR · EMPEZÁIS CON LA RED</span><span class="d">Arriba desde el primer golpe. Si os globean, a sufrir.</span></span></button>
+    <button class="opt" onclick="elegirOro('restar')"><span class="ic">🧱</span><span><span class="t">RESTAR · +1 ENERGÍA CADA TURNO</span><span class="d">Empezáis abajo, pero con más golpes por turno todo el punto.</span></span></button>
+  </div>`;
+
+  if(P.fase === 'entre'){
+    const U = P.ultimo;
+    return `<div class="fade">
+      <div class="card ${U.gane?'event-hero':'event-hero mal'}">${marcadorHTML(P)}<div class="hr"></div>
+        <div class="title-lg">${U.gane?'✅ PUNTO VUESTRO':'❌ PUNTO SUYO'}</div>
+        <p class="muted" style="margin:4px 0 0">${U.clave} · ${U.turnos} turno${U.turnos===1?'':'s'}</p>
+        <div style="margin-top:8px">${U.log.map(l=>`<div class="muted">${l}</div>`).join('')}</div></div>
+      <button class="btn" onclick="siguientePunto()">SIGUIENTE PUNTO</button></div>`;
+  }
+
+  if(P.fase === 'fin'){
+    const TO = S.torneo;
+    return `<div class="fade">
+      <div class="card ${P.gano?'event-hero':'event-hero mal'}">${marcadorHTML(P)}<div class="hr"></div>
+        <div class="title-xl" style="margin:2px 0 6px">${P.gano ? (TO.campeon ? gx('🏆 ¡CAMPEÓN!','🏆 ¡CAMPEONA!') : '✅ GANÁIS') : '😖 FUERA'}</div>
+        <p class="sub" style="margin:0">${P.gano ? (TO.campeon ? `Ganáis <b>${esc(TO.nom)}</b>.` : `Pasáis a ${NOM_RONDA[TO.rondas][TO.ronda].toLowerCase()}. Antes, un premio.`) : 'Se acaba el torneo aquí. Los puntos de la ronda quedan.'}</p></div>
+      <button class="btn" onclick="trasPartido()">CONTINUAR</button></div>`;
+  }
+
+  // ── jugando un punto ──
+  const C = P.punto, I = C.intencion, ti = textoIntencion(I, C);
+  const maxOrbes = Math.max(ENERGIA, C.energia);
+  return `<div class="fade">
+    <div class="card ${C.esOro?'oro-hero':''}" style="padding:11px 12px">${marcadorHTML(P)}
+      ${pistaHTML(C)}${dominioHTML(C)}</div>
+    <div class="intencion ${ti.def?'def':''}"><span class="ic">${I.ic}</span>
+      <div style="min-width:0"><b>${ti.t}</b><span>${ti.d}</span></div><span class="cuando">${ti.cuando}</span></div>
+    ${C.siguiente ? `<p class="muted" style="margin:5px 2px 0">📓 Después: ${C.siguiente.ic} ${C.siguiente.nom}</p>` : ''}
+    <div class="recursos">
+      <span class="orbes">${Array.from({length:maxOrbes},(_,i)=>`<i class="${i<C.energia?'si':''}">⚡</i>`).join('')}</span>
+      <span class="escudo">🛡️ ${C.cob}</span>
+      ${C.cobRival ? `<span class="escudo" style="color:#FFB3B3">Ellos 🛡️ ${C.cobRival}</span>` : ''}
+      <span class="muted" style="margin-left:auto;font-size:11.5px">Mazo ${C.mazo.length} · Usados ${C.descarte.length}</span>
+    </div>
+    ${consejo(C)}
+    <div class="mano">${C.mano.map((e,i)=>cartaHTML(e, {onclick:`jugarCarta(${i})`, motivo:motivoNoJugable(C,e), coste:costeEfectivo(C,e)})).join('')}</div>
+    <div style="height:10px"></div>
+    <button class="btn" onclick="terminarTurno()">TERMINAR TURNO</button>
+    ${C.log.length ? `<div class="card" style="margin-top:10px;padding:10px 12px">${C.log.slice(0,4).map((l,k)=>`<div class="muted" style="${k?'opacity:.7':''}">${l}</div>`).join('')}</div>` : ''}
+    <div class="row" style="margin-top:8px"><button class="btn ghost sm" onclick="verMazo()">🃏 MAZO</button></div>
+  </div>`;
+}
+
+/* ── PREMIO ENTRE PARTIDOS ── */
+function listaMazo(onclick, filtro){
+  const j = S.j;
+  const items = j.mazo.map((e,i)=>({e,i})).filter(filtro || (()=>true));
+  return `<div class="mano">${items.map(x=>cartaHTML(x.e, {onclick: onclick ? `${onclick}(${x.i})` : null})).join('')}</div>`;
+}
+function vPremio(){
+  const P = S.premio, j = S.j;
+  if(P.sub === 'draft') return `<div class="fade"><div class="card"><div class="eyebrow">GOLPE NUEVO</div><p class="muted" style="margin:5px 0 0">Elige uno. Un mazo corto y bueno gana más que uno largo.</p></div>
+    <div class="mano">${P.cartas.map((e,i)=>cartaHTML(e, {onclick:`tomarCarta(${i})`, grande:true})).join('')}</div>
+    <div style="height:10px"></div><button class="btn ghost" onclick="cerrarPremio('Sigues con el mismo mazo.')">NO COGER NINGUNO</button></div>`;
+  if(P.sub === 'mejorar') return `<div class="fade"><div class="card"><div class="eyebrow">PULIR UN GOLPE</div><p class="muted" style="margin:5px 0 0">Así quedaría cada uno mejorado. Toca el que quieras pulir.</p></div>
+    <div class="mano">${mejorables().map(x=>cartaHTML(x.e+'+', {onclick:`mejorarCarta(${x.i})`})).join('')}</div>
+    <div style="height:10px"></div><button class="btn ghost" onclick="S.premio.sub=null;render()">VOLVER</button></div>`;
+  if(P.sub === 'quitar') return `<div class="fade"><div class="card"><div class="eyebrow">LIMPIAR EL MAZO</div><p class="muted" style="margin:5px 0 0">Toca el golpe que quieres sacar. Quitar relleno hace que salgan más tus mejores golpes.</p></div>
+    ${j.mazo.length <= 6 ? '<div class="log bad">Con 6 golpes no puedes quitar más.</div>' : listaMazo('quitarCarta')}
+    <div style="height:10px"></div><button class="btn ghost" onclick="S.premio.sub=null;render()">VOLVER</button></div>`;
+  return `<div class="fade">
+    <div class="card event-hero"><div class="eyebrow">${P.volver==='partido' ? 'ANTES DEL SIGUIENTE PARTIDO' : 'PARADA DE LA TEMPORADA'}</div>
+      <div class="title-lg" style="margin:5px 0 4px">${P.titulo}</div><p class="muted" style="margin:0">Elige una. Solo una.</p></div>
+    ${P.opciones.map(t=>`<button class="opt" onclick="elegirPremio('${t}')"><span class="ic">${PREMIOS[t].ic}</span><span><span class="t">${PREMIOS[t].t}</span><span class="d">${PREMIOS[t].d}</span></span></button>`).join('')}
+    <div class="row"><button class="btn ghost sm" onclick="verMazo()">🃏 VER MAZO</button></div></div>`;
+}
+
+/* ── PATROCINADOR ── */
+function vTienda(){
+  const T = S.tienda, j = S.j;
+  if(T.sub === 'quitar') return `<div class="fade"><div class="card"><div class="eyebrow">QUITAR UN GOLPE</div></div>${listaMazo('quitarCarta')}</div>`;
+  return `<div class="fade">${mensajes()}
+    <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><div class="eyebrow">PATROCINADOR</div><span class="pill gold">${money(j.dinero)}</span></div></div>
+    <div class="card"><div class="eyebrow">GOLPES</div>
+      <div class="mano">${T.cartas.map((it,i)=>`<div>${cartaHTML(it.e, {onclick:`comprarCarta(${i})`, motivo: it.vendida?'Comprado':j.dinero<it.precio?'Sin dinero':null})}
+        <div class="center" style="font-size:12px;font-weight:800;margin-top:4px;color:var(--gold)">${it.vendida?'✓':money(it.precio)}</div></div>`).join('')}</div></div>
+    <div class="card"><div class="eyebrow">MATERIAL · PARA TODA LA CARRERA</div><div style="height:8px"></div>
+      ${T.materiales.length ? T.materiales.map((it,i)=>{ const M = MATERIALES[it.id], puede = !it.vendida && j.dinero >= M.precio;
+        return `<button class="opt ${puede?'':'lock'}" ${puede?`onclick="comprarMaterial(${i})"`:'disabled'}><span class="ic">${M.ic}</span><span><span class="t">${M.nom} · ${it.vendida?'✓':money(M.precio)}</span><span class="d">${M.txt}</span></span></button>`; }).join('') : '<p class="muted">Ya tienes todo el material.</p>'}
+    </div>
+    <button class="opt ${T.quitarUsado||j.dinero<60?'lock':''}" ${T.quitarUsado||j.dinero<60?'disabled':'onclick="comprarQuitar()"'}><span class="ic">✂️</span><span><span class="t">Quitar un golpe · 60€</span><span class="d">Una vez por visita.</span></span></button>
+    <button class="btn" onclick="salirTienda()">SEGUIR LA TEMPORADA</button></div>`;
+}
+
+/* ── IMPREVISTO ── */
+function vImprevisto(){
+  const I = S.imprevisto, E = IMPREVISTOS[I.i];
+  return `<div class="fade"><div class="card event-hero"><div class="eyebrow">IMPREVISTO</div>
+    <div class="title-lg" style="margin:5px 0 6px">${E.tit}</div><p class="sub" style="margin:0">${I.res || E.txt}</p></div>
+    ${I.res ? `<button class="btn" onclick="cerrarImprevisto()">SEGUIR</button>`
+      : E.ops.map((o,k)=>`<button class="opt" onclick="elegirImprevisto(${k})"><span class="ic">${k?'②':'①'}</span><span><span class="t">${o.t}</span><span class="d">${o.d}</span></span></button>`).join('')}
+  </div>`;
+}
+
+/* ── FIN DE TORNEO ── */
+function resumenTorneo(){ return `${TIERS[S.torneo.tier].etq} · ${S.finT.ronda}`; }
+function vFinTorneo(){
+  const F = S.finT, TO = S.torneo, j = S.j;
+  const delta = F.antes && j.ranking ? F.antes - j.ranking : 0;
+  return `<div class="fade"><div class="card ${F.campeon?'oro-hero':''}">
+    <div class="eyebrow">${esc(TO.nom)}</div><div class="title-xl" style="margin:5px 0 8px">${F.campeon?'🏆 ':''}${F.ronda}</div>
+    <div class="g2">
+      <div><div class="eyebrow">PUNTOS</div><div class="title-lg" style="color:var(--accent)">+${F.pts}</div></div>
+      <div><div class="eyebrow">PREMIO</div><div class="title-lg">${money(F.prem)}</div></div>
+      <div><div class="eyebrow">RANKING</div><div class="title-lg">${j.ranking?'#'+j.ranking:'—'} ${delta?`<span style="font-size:12px;color:${delta>0?'var(--accent)':'var(--danger)'}">${delta>0?'▲':'▼'}${Math.abs(delta)}</span>`:''}</div></div>
+      <div><div class="eyebrow">QUÍMICA</div><div class="title-lg">${j.pareja.quimica}</div></div>
+    </div></div>
+    ${TO.partidos.map(p=>`<div class="log ${p.gano?'':'bad'}">${p.gano?'✅':'❌'} <b>${p.ronda}</b> · ${esc(p.rival.nombre)} / ${esc(p.rival.nombre2)} · ${p.marcador}</div>`).join('')}
+    <button class="btn" onclick="siguientePaso(resumenTorneo())">SIGUIENTE PARADA</button></div>`;
+}
+
+/* ── FIN DE TEMPORADA ── */
+function vFinTemporada(){
+  const F = S.finTemp, j = S.j;
+  return `<div class="fade"><div class="card event-hero">
+    <div class="eyebrow">FIN DE LA TEMPORADA ${F.n}</div><div class="title-xl" style="margin:5px 0 8px">${j.ranking?'#'+j.ranking+' DEL MUNDO':'SIN RANKING'}</div>
+    <div class="g2"><div><div class="eyebrow">TÍTULOS DEL AÑO</div><div class="title-lg">${F.titulos}</div></div>
+      <div><div class="eyebrow">MEJOR PUESTO</div><div class="title-lg">${j.mejorRank?'#'+j.mejorRank:'—'}</div></div></div></div>
+    <div class="card"><div class="eyebrow">GOLPE DE FIRMA</div>
+      <p class="muted" style="margin:5px 0 8px">El año que viene empiezas con el mazo inicial otra vez. Elige <b>un golpe</b> de este mazo para llevártelo a todas las temporadas que te queden. Máximo 4: el quinto sustituye al más antiguo.</p>
+      ${F.firmada ? `<div class="log gold">✍️ <b>${nomCarta(F.firmada)}</b> ya es tu golpe de firma.</div>` : listaMazo('elegirFirma', x=>CARTAS[parsearCarta(x.e).id].zona!=='muerta')}
+      ${j.firma.length ? `<p class="muted" style="margin:8px 0 0">Tus firmas: ${j.firma.map(nomCarta).join(' · ')}</p>` : ''}
+    </div>
+    <button class="btn" onclick="siguienteTemporada()">${j.edad+1>=36?'ÚLTIMA TEMPORADA: RETIRARME':'SIGUIENTE TEMPORADA'}</button>
+    <div style="height:8px"></div><button class="btn ghost sm" onclick="retirarse()">RETIRARME AHORA</button></div>`;
+}
+
+/* ── RETIRO ── */
+function vRetiro(){
+  const j = S.j, L = S.legado || calcularLegado(j);
+  return `<div class="fade"><div class="card oro-hero"><div class="eyebrow">SE ACABÓ · ${j.edad} AÑOS</div>
+    <div class="title-xl" style="margin:5px 0 8px">${L.rango}</div><p class="sub" style="margin:0">${L.txt}</p><div class="hr"></div>
+    <div class="g2"><div><div class="eyebrow">MEJOR RANKING</div><div class="title-lg">${j.mejorRank?'#'+j.mejorRank:'—'}</div></div>
+      <div><div class="eyebrow">TÍTULOS</div><div class="title-lg">${j.titulos.length}</div></div>
+      <div><div class="eyebrow">PARTIDOS</div><div class="title-lg">${j.pg}-${j.pp}</div></div>
+      <div><div class="eyebrow">PUNTOS DE ORO</div><div class="title-lg">${j.orosG}/${j.orosJ}</div></div></div></div>
+    ${j.titulos.length ? `<div class="card"><div class="eyebrow">VITRINA</div>${j.titulos.slice().reverse().slice(0,12).map(t=>`<div class="li">${badgeTier(t.tier)}<div class="g"><b>${esc(t.nom)}</b><span>Temporada ${t.t} · ${t.edad} años</span></div></div>`).join('')}</div>` : ''}
+    <button class="btn" onclick="borrarSave();S={pantalla:'crear',j:null,msgs:[],pantallaPrevia:null};render()">EMPEZAR OTRA CARRERA</button></div>`;
+}
+
+/* ── MAZO ── */
+function vMazo(){
+  const j = S.j;
+  const orden = j.mazo.slice().sort((a,b)=>['red','fondo','libre','muerta'].indexOf(CARTAS[parsearCarta(a).id].zona) - ['red','fondo','libre','muerta'].indexOf(CARTAS[parsearCarta(b).id].zona));
+  const extra = (j.pareja ? j.pareja.cartas : []).concat(j.pareja && j.pareja.quimica>=30 ? ['cruce'] : []);
+  return `<div class="fade"><div class="card"><div class="eyebrow">TU MAZO · ${j.mazo.length} GOLPES</div>
+    <p class="muted" style="margin:5px 0 0">🔺 ${j.mazo.filter(e=>CARTAS[parsearCarta(e).id].zona==='red').length} de red · 🔻 ${j.mazo.filter(e=>CARTAS[parsearCarta(e).id].zona==='fondo').length} de fondo · ⚪ ${j.mazo.filter(e=>CARTAS[parsearCarta(e).id].zona==='libre').length} libres</p></div>
+    <div class="mano">${orden.map(e=>cartaHTML(e)).join('')}</div>
+    ${extra.length ? `<div class="card" style="margin-top:10px"><div class="eyebrow">LOS QUE TRAE TU PAREJA</div><div class="mano">${extra.map(e=>cartaHTML(e)).join('')}</div></div>` : ''}
+    <div style="height:10px"></div><button class="btn" onclick="S.pantalla=S.volverMazo||'temporada';render()">VOLVER</button></div>`;
+}
+
+/* ─────────── ARRANQUE ─────────── */
+S = { pantalla:'inicio', j:null, msgs:[], pantallaPrevia:null };
+render();
+</script>
+</body>
+</html>

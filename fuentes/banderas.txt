@@ -1,0 +1,119 @@
+/* ── La sede de cada torneo: la bandera del país, el código de la ciudad y el color de la categoría ── */
+const franjasH = cols => cols.map((c, i) => `<rect y="${(20*i/cols.length).toFixed(3)}" width="30" height="${(20/cols.length + .05).toFixed(3)}" fill="${c}"/>`).join('');
+const franjasV = cols => cols.map((c, i) => `<rect x="${(30*i/cols.length).toFixed(3)}" width="${(30/cols.length + .05).toFixed(3)}" height="20" fill="${c}"/>`).join('');
+function estrellaSVG(cx, cy, r, col){
+  let d = '';
+  for(let k = 0; k < 10; k++){ const a = -Math.PI/2 + k*Math.PI/5, rr = k % 2 ? r*.42 : r; d += (k ? 'L' : 'M') + (cx + Math.cos(a)*rr).toFixed(2) + ' ' + (cy + Math.sin(a)*rr).toFixed(2); }
+  return `<path d="${d}Z" fill="${col}"/>`;
+}
+function solSVG(cx, cy, r){
+  let rayos = '';
+  for(let k = 0; k < 16; k++){ const a = k*Math.PI/8; rayos += `M${(cx + Math.cos(a)*r*1.1).toFixed(2)} ${(cy + Math.sin(a)*r*1.1).toFixed(2)}L${(cx + Math.cos(a)*r*1.75).toFixed(2)} ${(cy + Math.sin(a)*r*1.75).toFixed(2)}`; }
+  return `<path d="${rayos}" stroke="#F6B40E" stroke-width=".6"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="#F6B40E"/>`;
+}
+function sierraSVG(x, n, col){
+  let d = `M0 0H${x}`;
+  for(let k = 0; k < n; k++) d += `L${x + 3} ${(20*(k + .5)/n).toFixed(2)}L${x} ${(20*(k + 1)/n).toFixed(2)}`;
+  return `<path d="${d}H0Z" fill="${col}"/>`;
+}
+const BANDERAS_SVG = {
+  AR: () => franjasH(['#74ACDF','#FFFFFF','#74ACDF']) + solSVG(15, 10, 1.7),
+  BO: () => franjasH(['#D52B1E','#F9E300','#007934']),
+  CL: () => `<rect width="30" height="20" fill="#D52B1E"/><rect width="30" height="10" fill="#FFFFFF"/><rect width="10" height="10" fill="#0039A6"/>` + estrellaSVG(5, 5, 2.6, '#FFFFFF'),
+  CO: () => `<rect width="30" height="20" fill="#CE1126"/><rect width="30" height="15" fill="#003893"/><rect width="30" height="10" fill="#FCD116"/>`,
+  CR: () => franjasH(['#002B7F','#FFFFFF','#CE1126','#CE1126','#FFFFFF','#002B7F']),
+  CU: () => franjasH(['#002A8F','#FFFFFF','#002A8F','#FFFFFF','#002A8F']) + `<path d="M0 0L14 10L0 20Z" fill="#CF142B"/>` + estrellaSVG(4.7, 10, 2.6, '#FFFFFF'),
+  EC: () => `<rect width="30" height="20" fill="#ED1C24"/><rect width="30" height="15" fill="#034EA2"/><rect width="30" height="10" fill="#FFD100"/><ellipse cx="15" cy="10" rx="2.2" ry="2.8" fill="#6B8E3D" stroke="#8C6A3B" stroke-width=".6"/>`,
+  SV: () => franjasH(['#0F47AF','#FFFFFF','#0F47AF']) + `<circle cx="15" cy="10" r="2" fill="none" stroke="#D4A937" stroke-width=".7"/>`,
+  ES: () => `<rect width="30" height="20" fill="#AA151B"/><rect y="5" width="30" height="10" fill="#F1BF00"/><rect x="6.5" y="7.2" width="4" height="5.2" rx="1.2" fill="#AA151B" stroke="#C8A24A" stroke-width=".5"/>`,
+  GQ: () => franjasH(['#3E9A00','#FFFFFF','#E32118']) + `<path d="M0 0L7.5 10L0 20Z" fill="#0073CE"/>`,
+  GT: () => franjasV(['#4997D0','#FFFFFF','#4997D0']) + `<circle cx="15" cy="10" r="2.4" fill="none" stroke="#6C9A3A" stroke-width=".8"/>`,
+  HN: () => franjasH(['#0073CF','#FFFFFF','#0073CF']) + [[15,10],[11.5,8.6],[11.5,11.4],[18.5,8.6],[18.5,11.4]].map(([x, y]) => estrellaSVG(x, y, 1, '#0073CF')).join(''),
+  MX: () => franjasV(['#006847','#FFFFFF','#CE1126']) + `<circle cx="15" cy="10" r="2.3" fill="#8C5A2B"/><path d="M12.8 11.2q2.2 2.4 4.4 0" stroke="#006847" stroke-width=".7" fill="none"/>`,
+  NI: () => franjasH(['#0067C6','#FFFFFF','#0067C6']) + `<path d="M15 8.2L17 11.6H13Z" fill="none" stroke="#C8A24A" stroke-width=".6"/>`,
+  PA: () => `<rect width="30" height="20" fill="#FFFFFF"/><rect x="15" width="15" height="10" fill="#D21034"/><rect y="10" width="15" height="10" fill="#005293"/>` + estrellaSVG(7.5, 5, 2.2, '#005293') + estrellaSVG(22.5, 15, 2.2, '#D21034'),
+  PY: () => franjasH(['#D52B1E','#FFFFFF','#0038A8']) + `<circle cx="15" cy="10" r="1.9" fill="#FFFFFF" stroke="#E0B000" stroke-width=".6"/>`,
+  PE: () => franjasV(['#D91023','#FFFFFF','#D91023']),
+  PR: () => franjasH(['#ED0000','#FFFFFF','#ED0000','#FFFFFF','#ED0000']) + `<path d="M0 0L14 10L0 20Z" fill="#0050F0"/>` + estrellaSVG(4.7, 10, 2.6, '#FFFFFF'),
+  DO: () => `<rect width="30" height="20" fill="#FFFFFF"/><rect width="13" height="8" fill="#002D62"/><rect x="17" width="13" height="8" fill="#CE1126"/><rect y="12" width="13" height="8" fill="#CE1126"/><rect x="17" y="12" width="13" height="8" fill="#002D62"/><circle cx="15" cy="10" r="1.3" fill="#1B7A3C"/>`,
+  UY: () => franjasH(['#FFFFFF','#0038A8','#FFFFFF','#0038A8','#FFFFFF','#0038A8','#FFFFFF','#0038A8','#FFFFFF']) + `<rect width="11" height="11.2" fill="#FFFFFF"/>` + solSVG(5.5, 5.6, 1.9),
+  VE: () => franjasH(['#FFCC00','#00247D','#CF142B']) + [...Array(8)].map((_, k) => { const a = Math.PI*(1.15 + k*.1); return estrellaSVG(15 + Math.cos(a)*5, 12.4 + Math.sin(a)*5, .6, '#FFFFFF'); }).join(''),
+  AE: () => franjasH(['#00732F','#FFFFFF','#000000']) + `<rect width="8" height="20" fill="#FF0000"/>`,
+  BE: () => franjasV(['#000000','#FDDA24','#EF3340']),
+  IT: () => franjasV(['#009246','#FFFFFF','#CE2B37']),
+  US: () => [...Array(13)].map((_, k) => `<rect y="${(k*20/13).toFixed(2)}" width="30" height="${(20/13 + .05).toFixed(2)}" fill="${k % 2 ? '#FFFFFF' : '#B22234'}"/>`).join('')
+            + `<rect width="12" height="10.77" fill="#3C3B6E"/>` + [...Array(12)].map((_, k) => `<circle cx="${(1.6 + (k % 4)*2.9).toFixed(1)}" cy="${(1.8 + Math.floor(k/4)*3.4).toFixed(1)}" r=".55" fill="#FFFFFF"/>`).join(''),
+  CA: () => `<rect width="30" height="20" fill="#FFFFFF"/><rect width="7.5" height="20" fill="#D52B1E"/><rect x="22.5" width="7.5" height="20" fill="#D52B1E"/><path d="M15 4.5L16 6.6L17.4 6.1L17 9.2L18.6 7.9L19.2 9L20.5 8.8L19.8 11.2L20.6 11.6L17.2 14L17.5 15.2L15.3 14.9V17H14.7V14.9L12.5 15.2L12.8 14L9.4 11.6L10.2 11.2L9.5 8.8L10.8 9L11.4 7.9L13 9.2L12.6 6.1L14 6.6Z" fill="#D52B1E"/>`,
+  DK: () => `<rect width="30" height="20" fill="#C8102E"/><rect x="9" width="3" height="20" fill="#FFFFFF"/><rect y="8.5" width="30" height="3" fill="#FFFFFF"/>`,
+  QA: () => `<rect width="30" height="20" fill="#8A1538"/>` + sierraSVG(8, 9, '#FFFFFF'),
+  SE: () => `<rect width="30" height="20" fill="#006AA7"/><rect x="9" width="3.4" height="20" fill="#FECC02"/><rect y="8.3" width="30" height="3.4" fill="#FECC02"/>`,
+  KW: () => franjasH(['#007A3D','#FFFFFF','#CE1126']) + `<path d="M0 0L7 6.67V13.33L0 20Z" fill="#000000"/>`,
+  PT: () => `<rect width="30" height="20" fill="#FF0000"/><rect width="12" height="20" fill="#006600"/><circle cx="12" cy="10" r="3.3" fill="none" stroke="#FFE000" stroke-width="1"/><rect x="10.6" y="8.3" width="2.8" height="3.4" rx=".8" fill="#FFFFFF" stroke="#FF0000" stroke-width=".5"/>`,
+  FR: () => franjasV(['#0055A4','#FFFFFF','#EF4135']),
+  SA: () => `<rect width="30" height="20" fill="#006C35"/><path d="M8 8.6q1.5-2 3 0t3 0t3 0t3 0t3 0" stroke="#FFFFFF" stroke-width=".9" fill="none"/><path d="M8.5 13.6H21.5l1.2-.8" stroke="#FFFFFF" stroke-width=".8" fill="none"/>`,
+  NL: () => franjasH(['#AE1C28','#FFFFFF','#21468B']),
+  SG: () => franjasH(['#EF3340','#FFFFFF']) + `<circle cx="6" cy="5" r="3" fill="#FFFFFF"/><circle cx="7.2" cy="5" r="2.8" fill="#EF3340"/>` + [[9.6,3.2],[11.4,4.4],[10.8,6.4],[8.5,6.4],[7.9,4.4]].map(([x, y]) => estrellaSVG(x, y, .55, '#FFFFFF')).join(''),
+  ID: () => franjasH(['#FF0000','#FFFFFF']),
+  CH: () => `<rect width="30" height="20" fill="#DA291C"/><rect x="13" y="4" width="4" height="12" fill="#FFFFFF"/><rect x="9" y="8" width="12" height="4" fill="#FFFFFF"/>`,
+  SK: () => franjasH(['#FFFFFF','#0B4EA2','#EE1C25']) + `<path d="M7 5.5H14V11.5Q14 15 10.5 16.5Q7 15 7 11.5Z" fill="#EE1C25" stroke="#FFFFFF" stroke-width=".6"/><path d="M10.5 7V14M8.8 8.8H12.2M8.3 10.8H12.7" stroke="#FFFFFF" stroke-width=".7"/><path d="M7.3 13.2Q9 11.8 10.5 13Q12 11.8 13.7 13.2L13.2 14.3Q10.5 16.4 7.8 14.3Z" fill="#0B4EA2"/>`,
+  HR: () => franjasH(['#FF0000','#FFFFFF','#171796']) + `<rect x="12.6" y="6" width="4.8" height="6" fill="#FFFFFF" stroke="#171796" stroke-width=".4"/>`
+            + [...Array(12)].map((_, k) => (Math.floor(k/3) + k % 3) % 2 ? '' : `<rect x="${(12.6 + (k % 3)*1.6).toFixed(1)}" y="${(6 + Math.floor(k/3)*1.5).toFixed(1)}" width="1.6" height="1.5" fill="#FF0000"/>`).join(''),
+  CZ: () => `<rect width="30" height="20" fill="#D7141A"/><rect width="30" height="10" fill="#FFFFFF"/><path d="M0 0L15 10L0 20Z" fill="#11457E"/>`,
+  TH: () => franjasH(['#A51931','#F4F5F8','#2D2A4A','#2D2A4A','#F4F5F8','#A51931']),
+  BH: () => `<rect width="30" height="20" fill="#CE1126"/>` + sierraSVG(7.5, 5, '#FFFFFF'),
+  OM: () => `<rect width="30" height="20" fill="#DB161B"/><rect x="8" width="22" height="6.67" fill="#FFFFFF"/><rect x="8" y="13.33" width="22" height="6.67" fill="#008000"/><path d="M2.5 2.5L5.5 5.5M5.5 2.5L2.5 5.5M4 2V6" stroke="#FFFFFF" stroke-width=".7"/>`,
+};
+const PAISES_SEDE = { AE:'Emiratos Árabes', BE:'Bélgica', IT:'Italia', US:'Estados Unidos', CA:'Canadá', DK:'Dinamarca', QA:'Catar', SE:'Suecia', KW:'Kuwait', PT:'Portugal',
+                      FR:'Francia', SA:'Arabia Saudí', NL:'Países Bajos', SG:'Singapur', ID:'Indonesia', CH:'Suiza', SK:'Eslovaquia', HR:'Croacia', CZ:'Chequia', TH:'Tailandia', BH:'Baréin', OM:'Omán' };
+const CIUDAD_PAIS = {
+  'Abu Dabi':'AE', 'Dubái':'AE', 'Doha':'QA', 'Riad':'SA', 'Kuwait':'KW', 'Yakarta':'ID', 'Singapur':'SG', 'Bangkok':'TH', 'Manama':'BH', 'Mascate':'OM',
+  'Acapulco':'MX', 'Cancún':'MX', 'Monterrey':'MX', 'Guadalajara':'MX', 'Ciudad de México':'MX',
+  'Alicante':'ES', 'Barcelona':'ES', 'Bilbao':'ES', 'Getafe':'ES', 'Madrid':'ES', 'Málaga':'ES', 'Sevilla':'ES', 'Valencia':'ES', 'Vigo':'ES', 'Reus':'ES',
+  'Bruselas':'BE', 'Cerdeña':'IT', 'Génova':'IT', 'Milán':'IT', 'Roma':'IT', 'Módena':'IT', 'Rímini':'IT', 'París':'FR', 'Tolosa':'FR', 'Rotterdam':'NL',
+  'Copenhague':'DK', 'Gotemburgo':'SE', 'Oporto':'PT', 'Coímbra':'PT', 'Cascais':'PT', 'Basilea':'CH', 'Bratislava':'SK', 'Zagreb':'HR', 'Ostrava':'CZ',
+  'Chicago':'US', 'Miami':'US', 'Nueva York':'US', 'Houston':'US', 'Los Ángeles':'US', 'San Diego':'US', 'Austin':'US', 'Toronto':'CA',
+  'Buenos Aires':'AR', 'Mar del Plata':'AR', 'Córdoba':'AR', 'Rosario':'AR', 'Santiago':'CL', 'Lima':'PE', 'Asunción':'PY', 'Montevideo':'UY', 'Quito':'EC', 'Guayaquil':'EC',
+  'San José':'CR', 'Ciudad de Panamá':'PA', 'Santo Domingo':'DO', 'San Juan':'PR', 'Ciudad de Guatemala':'GT',
+};
+const COD_CIUDAD = {
+  'Abu Dabi':'AUH', 'Dubái':'DXB', 'Doha':'DOH', 'Riad':'RUH', 'Kuwait':'KWI', 'Yakarta':'JKT', 'Singapur':'SIN', 'Bangkok':'BKK', 'Manama':'BAH', 'Mascate':'MCT',
+  'Acapulco':'ACA', 'Cancún':'CUN', 'Monterrey':'MTY', 'Guadalajara':'GDL', 'Ciudad de México':'CDMX', 'Puebla':'PBC',
+  'Alicante':'ALC', 'Barcelona':'BCN', 'Bilbao':'BIO', 'Getafe':'GTF', 'Madrid':'MAD', 'Málaga':'AGP', 'Sevilla':'SVQ', 'Valencia':'VLC', 'Vigo':'VGO', 'Reus':'REU', 'Valladolid':'VLL', 'Zaragoza':'ZAZ',
+  'Bruselas':'BRU', 'Cerdeña':'CAG', 'Génova':'GOA', 'Milán':'MIL', 'Roma':'ROM', 'Módena':'MOD', 'Rímini':'RMI', 'París':'PAR', 'Tolosa':'TLS', 'Rotterdam':'RTM',
+  'Copenhague':'CPH', 'Gotemburgo':'GOT', 'Oporto':'OPO', 'Coímbra':'COI', 'Cascais':'CAS', 'Basilea':'BSL', 'Bratislava':'BTS', 'Zagreb':'ZAG', 'Ostrava':'OSR',
+  'Chicago':'CHI', 'Miami':'MIA', 'Nueva York':'NYC', 'Houston':'HOU', 'Los Ángeles':'LAX', 'San Diego':'SAN', 'Austin':'AUS', 'Toronto':'YTO',
+  'Buenos Aires':'BUE', 'Mar del Plata':'MDQ', 'Córdoba':'COR', 'Rosario':'ROS', 'Mendoza':'MDZ', 'Bariloche':'BRC', 'Santiago':'SCL', 'Lima':'LIM', 'Asunción':'ASU',
+  'Montevideo':'MVD', 'Quito':'UIO', 'Guayaquil':'GYE', 'San José':'SJO', 'Ciudad de Panamá':'PTY', 'Santo Domingo':'SDQ', 'San Juan':'SJU', 'Ciudad de Guatemala':'GUA',
+  'La Paz':'LPB', 'Santa Cruz':'VVI', 'Bogotá':'BOG', 'Medellín':'MDE', 'Cali':'CLO', 'Barranquilla':'BAQ', 'La Habana':'HAV', 'San Salvador':'SAL', 'Tegucigalpa':'TGU',
+  'San Pedro Sula':'SAP', 'Managua':'MGA', 'Caracas':'CCS', 'Maracaibo':'MAR', 'Punta del Este':'PDP', 'Punta Cana':'PUJ', 'Cusco':'CUZ', 'Arequipa':'AQP', 'Malabo':'SSG',
+  'DO|Santiago':'STI', 'VE|Valencia':'VLN',
+};
+function paisSede(ev){
+  if(!ev) return null;
+  if(ev.pais) return ev.pais;
+  if(CIUDAD_PAIS[ev.ciudad]) return CIUDAD_PAIS[ev.ciudad];
+  const p = PAISES.find(x => (x.ciudades || []).some(c => c.n === ev.ciudad));
+  return p ? p.id : null;
+}
+function nombrePaisSede(id){ const p = PAISES.find(x => x.id === id); return p ? p.nom : PAISES_SEDE[id] || ''; }
+function codCiudad(c, pais){
+  if(COD_CIUDAD[pais + '|' + c]) return COD_CIUDAD[pais + '|' + c];
+  if(COD_CIUDAD[c]) return COD_CIUDAD[c];
+  return String(c || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3) || '—';
+}
+function banderaSVG(p){
+  const f = BANDERAS_SVG[p];
+  return `<svg class="bandera" viewBox="0 0 30 20" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${f ? f() : '<rect width="30" height="20" fill="#1C4A52"/>'}</svg>`;
+}
+/* la ficha de cada torneo en el calendario */
+function fichaSede(ev){
+  const p = paisSede(ev);
+  return `<span class="ficha-sede" style="--cat:${colorCat(ev.t)}" title="${esc(ev.ciudad + (nombrePaisSede(p) ? ', ' + nombrePaisSede(p) : ''))}">${banderaSVG(p)}<b>${esc(codCiudad(ev.ciudad, p))}</b><i>${ico(iconoCat(ev.t))}</i></span>`;
+}
+/* la cabecera del torneo: la bandera ondeando, el emblema de la categoría y la sede */
+function bannerSede(ev){
+  const p = paisSede(ev), np = nombrePaisSede(p);
+  return `<div class="banner-sede" style="--cat:${colorCat(ev.t)}">${banderaSVG(p)}<span class="banner-pliegues"></span>
+    <span class="banner-emblema">${ico(iconoCat(ev.t))}</span>
+    <span class="banner-lugar"><b>${esc(codCiudad(ev.ciudad, p))}</b><span>${esc(ev.ciudad)}${np ? ' · ' + esc(np) : ''}</span></span></div>`;
+}

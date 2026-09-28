@@ -1,0 +1,144 @@
+
+/* ── calendario, torneos y premios ── */
+.vitrina{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.trofeo{border-radius:10px;padding:8px 3px 6px;text-align:center;min-width:0;border:1px solid var(--border)}
+.trofeo span{display:block;font-size:22px;line-height:1.15}
+.trofeo b{display:block;font-size:9.5px;letter-spacing:.05em;font-weight:900;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trofeo small{display:block;font-size:9.5px;color:var(--muted);font-weight:700}
+.fila-premio{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border-soft);font-size:13px}
+.fila-premio:last-child{border-bottom:0}
+.fila-premio b{font-variant-numeric:tabular-nums;text-align:right;font-weight:800}
+.fila-premio.oro{color:var(--gold)}
+.grupo-cal{font-size:10.5px;letter-spacing:.13em;color:var(--muted);font-weight:800;margin:14px 2px 6px}
+.grupo-cal:first-child{margin-top:4px}
+.opt .flecha{flex:none;align-self:center;color:var(--muted);font-size:22px;line-height:1}
+.opt.hecho{border-color:rgba(245,197,66,.32)}
+.etapas{display:flex;gap:4px;margin-top:11px}
+.etapa{flex:1;min-width:0;text-align:center}
+.etapa i{display:block;height:7px;border-radius:99px;background:rgba(255,255,255,.1)}
+.etapa.ok i{background:var(--accent)} .etapa.ahora i{background:var(--gold)} .etapa.ko i{background:var(--danger)}
+.etapa span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.03em;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.etapa.ahora span{color:var(--gold)}
+.tg{width:50px;height:30px;border-radius:99px;background:rgba(255,255,255,.14);position:relative;border:0;flex:none;padding:0}
+.tg i{position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .15s}
+.tg.on{background:var(--accent)} .tg.on i{left:24px}
+.seg{display:flex;gap:4px;flex:none}
+.seg button{min-width:42px;min-height:40px;border-radius:9px;border:1px solid var(--border);background:var(--card-bg-2);color:var(--muted);font-weight:900}
+.seg button.on{background:rgba(34,211,165,.14);border-color:rgba(34,211,165,.45);color:var(--accent)}
+kbd{font:inherit;font-size:11.5px;font-weight:800;background:var(--card-bg-2);border:1px solid var(--border);border-radius:6px;padding:1px 6px;color:var(--text)}
+.golpe-guia{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border-soft)}
+.golpe-guia:last-child{border-bottom:0}
+.golpe-guia .bola{width:42px;height:42px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:19px}
+.golpe-guia b{display:block;font-size:13.5px}
+.golpe-guia span{font-size:12.5px;color:var(--text-2);line-height:1.45}
+.confeti{position:relative;overflow:hidden}
+.confeti i{position:absolute;top:-14px;width:7px;height:11px;border-radius:2px;opacity:.95;animation:caer 2.6s ease-in forwards;pointer-events:none}
+@keyframes caer{to{transform:translateY(380px) rotate(560deg);opacity:0}}
+@media (prefers-reduced-motion: reduce){ .confeti i{display:none} }
+
+/* ═══ LA PISTA EN VIVO ═══ */
+body.en-pista{overflow:hidden}
+#juego{position:fixed;inset:0;z-index:100;background:#051012;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+#juego[hidden]{display:none!important}
+#lienzo{position:absolute;inset:0;width:100%;height:100%;display:block}
+#hudP{position:absolute;top:max(8px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:12px;
+  background:rgba(5,18,20,.86);border:1px solid var(--border);border-radius:13px;padding:6px 13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#hudP .eq{display:flex;align-items:center;gap:7px;font-weight:900}
+#hudP .nm{font-size:10.5px;letter-spacing:.12em;color:var(--muted)}
+#hudP .jg{font-size:21px}
+#hudP .pt{font-size:13.5px;color:var(--text);background:rgba(255,255,255,.08);border-radius:6px;padding:1px 6px;min-width:26px;text-align:center}
+#hudP .yo .jg{color:var(--pelota)} #hudP .el .jg{color:#FF8A7A}
+#hudP .saca{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--muted)}
+#hudP .saca.on{background:var(--pelota);border-color:var(--pelota)}
+#rotuloP{position:absolute;top:calc(max(8px,env(safe-area-inset-top)) + 50px);left:50%;transform:translateX(-50%);z-index:5;display:none;white-space:nowrap;
+  font-size:11px;font-weight:900;letter-spacing:.16em;color:#2a1d00;background:var(--gold);border-radius:99px;padding:4px 12px}
+#avisoP{position:absolute;left:50%;top:40%;width:92%;transform:translate(-50%,-50%) scale(.9);z-index:6;text-align:center;pointer-events:none;
+  font-size:32px;line-height:1.1;font-weight:900;letter-spacing:-.02em;text-shadow:0 3px 16px rgba(0,0,0,.7);opacity:0;transition:opacity .18s,transform .18s}
+#avisoP.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#avisoP small{display:block;width:fit-content;max-width:100%;margin:7px auto 0;padding:4px 11px;border-radius:9px;background:rgba(6,18,16,.74);
+  line-height:1.5;font-size:12.5px;letter-spacing:.1em;color:var(--text-2);font-weight:800}
+#ayudaP{position:absolute;left:50%;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 236px);transform:translateX(-50%);z-index:5;width:max-content;max-width:88%;
+  background:rgba(5,18,20,.9);border:1px solid var(--border);border-radius:12px;padding:8px 12px;font-size:13px;color:var(--text);text-align:center;pointer-events:none}
+#ayudaP[hidden]{display:none}
+#controlesP{position:absolute;inset:0;z-index:4;pointer-events:none}
+#joyP{position:absolute;left:18px;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 14px);width:128px;height:128px;border-radius:50%;
+  background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.15);pointer-events:auto;touch-action:none}
+#joyKnobP{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(220,245,74,.3);border:2px solid rgba(220,245,74,.75)}
+#juego .accion{position:absolute;border-radius:50%;border:0;padding:0;font-weight:900;letter-spacing:.03em;pointer-events:auto;touch-action:none;color:#03211A;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1;box-shadow:0 5px 16px rgba(0,0,0,.45);transition:transform .08s,box-shadow .15s}
+#juego .accion i{font-style:normal;font-size:19px}
+#juego .accion.pulsado{transform:scale(.9);filter:brightness(1.15)}
+#juego .accion.sugerido{box-shadow:0 0 0 3px #fff,0 0 20px 6px rgba(255,255,255,.5)}
+#bGolpe{right:18px;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 12px);width:98px;height:98px;background:var(--pelota);font-size:13.5px}
+#juego #bGolpe i{font-size:24px}
+#bRemate{right:22px;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 122px);width:74px;height:74px;background:#FF9F43;font-size:10.5px}
+#bGlobo{right:126px;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 6px);width:72px;height:72px;background:#7FD3F7;font-size:10.5px}
+#bDejada{right:110px;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 94px);width:64px;height:64px;background:#E4F3EF;font-size:9.5px}
+#juego #bDejada i{font-size:16px}
+#bPausaP{position:absolute;right:10px;top:max(9px,env(safe-area-inset-top));z-index:6;width:40px;height:40px;border-radius:11px;
+  border:1px solid var(--border);background:rgba(5,18,20,.86);color:var(--text);font-weight:900;font-size:14px}
+#teclasP{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:4;font-size:12px;color:var(--muted);white-space:nowrap;display:none}
+#pausaP{position:absolute;inset:0;z-index:8;background:rgba(3,12,14,.82);display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+#pausaP[hidden]{display:none}
+#pausaP .caja{width:100%;max-width:420px}
+#editorP{position:absolute;left:0;right:0;top:max(10px,env(safe-area-inset-top));z-index:7;padding:0 12px;display:flex;justify-content:center}
+#editorP[hidden]{display:none}
+#editorP .caja{width:100%;max-width:420px}
+#juego.editando .accion,#juego.editando #joyP{outline:2px dashed rgba(255,255,255,.75);outline-offset:4px;cursor:grab}
+.seg.ancho{width:100%} .seg.ancho button{flex:1}
+.tecla.esperando{border-color:var(--gold);color:var(--gold)}
+@media (hover:hover) and (pointer:fine){ #controlesP{display:none} #teclasP{display:block} #ayudaP{bottom:46px} }
+
+/* ── la ráfaga ── */
+.barra-rafaga{position:relative;height:58px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid var(--border);overflow:hidden;touch-action:manipulation;cursor:pointer;user-select:none;-webkit-user-select:none}
+.barra-rafaga .zona{position:absolute;top:0;bottom:0;background:rgba(67,206,132,.3);border-left:2px solid var(--bien);border-right:2px solid var(--bien)}
+.barra-rafaga .zona i{position:absolute;top:0;bottom:0;left:35%;width:30%;background:rgba(245,197,66,.6)}
+.barra-rafaga .cursor{position:absolute;top:-4px;bottom:-4px;width:6px;margin-left:-3px;border-radius:3px;background:var(--pelota);box-shadow:0 0 14px rgba(220,245,74,.95)}
+.btn.pegar{margin-top:12px;padding:18px;font-size:17px;background:var(--pelota);color:#1a2600;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.chips-rafaga{display:flex;gap:4px;flex:none}
+.chips-rafaga .chip{min-width:40px;height:28px;padding:0 6px;border-radius:99px;border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:800}
+.chips-rafaga .chip.ahora{border-color:var(--gold)} .chips-rafaga .chip.bien{border-color:rgba(67,206,132,.65)}
+.chips-rafaga .chip.perfecto{border-color:var(--gold);background:rgba(245,197,66,.16)} .chips-rafaga .chip.fuera{border-color:rgba(255,107,107,.65)}
+
+/* ── leer al rival ── */
+.zonas-leer{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}
+.zleer{min-height:104px;border-radius:13px;border:2px solid rgba(255,255,255,.14);background:linear-gradient(180deg,#1F6E57,#17594A);color:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px;font-weight:900;touch-action:manipulation;transition:transform .08s}
+.zleer:active{transform:scale(.96)}
+.zleer .ic{font-size:24px;line-height:1}
+.zleer b{font-size:11.5px;letter-spacing:.06em}
+.zleer small{font-size:12px;font-weight:900;color:#DCF54A}
+.zleer.top{border-color:rgba(220,245,74,.55)}
+
+/* tus chances, ronda a ronda */
+.chances .chance{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px 9px;padding:8px 0;border-top:1px solid var(--border)}
+.chances .chance:first-child{border-top:0}
+.chance .ch-nom{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--muted);min-width:54px}
+.chance .ch-riv{font-size:12.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chance .ch-pc{font-size:13.5px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right}
+.chance .ch-barra{grid-column:1 / 4;height:4px;border-radius:99px;overflow:hidden;background:rgba(255,107,107,.28)}
+.chance .ch-barra i{display:block;height:100%;background:var(--bien)}
+.chance.ahora .ch-nom{color:var(--gold)}
+.chance.hecha{opacity:.55}
+
+/* ranking */
+.rk-fila{display:grid;grid-template-columns:38px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--border)}
+.card > .rk-fila:first-child{border-top:0}
+.rk-fila .rk-n{font-weight:900;color:var(--muted);font-variant-numeric:tabular-nums}
+.rk-fila .rk-nm{min-width:0;font-size:13px}
+.rk-fila .rk-nm small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.rk-fila .rk-pt{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
+.rk-fila.tu{background:rgba(220,245,74,.08);border-radius:10px;padding:8px 6px;border-top-color:transparent}
+.rk-fila.tu .rk-n{color:var(--pelota)}
+.rk-riv{display:inline-block;font-size:9px;font-weight:900;letter-spacing:.06em;color:#FF8A7A;border:1px solid rgba(255,138,122,.5);border-radius:6px;padding:0 5px;margin-left:3px;vertical-align:1px}
+/* tu jugador */
+.muestras{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.muestra{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.22);padding:0;cursor:pointer}
+.muestra.on{border-color:#fff;box-shadow:0 0 0 2px var(--accent)}
+.figura-prev{background:rgba(42,100,184,.35);border-radius:14px;padding:6px 8px;flex:none}
+/* entrenamiento y celebraciones */
+.estrellas{font-size:30px;letter-spacing:4px}
+.trofeo-grande{font-size:76px;text-align:center;line-height:1;margin:6px 0 4px;animation:levantar 1.1s cubic-bezier(.2,1.4,.4,1) both,brillo 2.4s ease-in-out 1.1s infinite}
+@keyframes levantar{0%{transform:translateY(40px) scale(.4) rotate(-12deg);opacity:0}100%{transform:none;opacity:1}}
+@keyframes brillo{0%,100%{filter:drop-shadow(0 0 0 rgba(245,197,66,0))}50%{filter:drop-shadow(0 0 18px rgba(245,197,66,.85))}}
+@media (prefers-reduced-motion:reduce){.trofeo-grande{animation:none}}

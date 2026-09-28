@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>LA CABRA · Pádel</title>
+<meta name="description" content="Pádel en tiempo real, 2 contra 2: mueve a tu jugador, pega en el momento justo y usa las paredes de cristal. Partidos rápidos con punto de oro.">
+<meta name="theme-color" content="#08191C">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2308191C'/%3E%3Ccircle cx='32' cy='32' r='16' fill='%23DCF54A'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#08191C; --card:#0E2A2E; --card2:#143439; --borde:rgba(110,215,195,.16);
+  --txt:#DEEDE9; --txt2:#AECAC5; --mute:#87A8A3;
+  --acento:#22D3A5; --sobre:#03211A; --pelota:#DCF54A; --rival:#FF8A7A; --oro:#F5C542; --mal:#FF6B6B; --globo:#7FD3F7;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);
+  font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overscroll-behavior:none;-webkit-font-smoothing:antialiased}
+body{overflow:hidden;user-select:none;-webkit-user-select:none}
+button{font-family:inherit;cursor:pointer}
+.pantalla{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;overflow-y:auto;
+  padding:max(14px,env(safe-area-inset-top)) 14px max(24px,env(safe-area-inset-bottom))}
+.pantalla[hidden]{display:none!important}
+.caja{width:100%;max-width:460px}
+.marca{display:flex;align-items:center;gap:8px;justify-content:center;margin:4px 0 14px}
+.marca b{font-weight:900;letter-spacing:.14em;font-size:15px}
+.marca small{color:var(--mute);letter-spacing:.2em;font-weight:700;font-size:11px}
+.pala{width:12px;height:16px;border-radius:6px 6px 5px 5px;background:var(--pelota);display:inline-block}
+.card{background:var(--card);border:1px solid var(--borde);border-radius:14px;padding:14px;margin-bottom:11px}
+.card.hero{background:linear-gradient(165deg,rgba(34,211,165,.15),transparent 62%),var(--card)}
+.card.oro{background:linear-gradient(165deg,rgba(245,197,66,.18),transparent 62%),var(--card);border-color:rgba(245,197,66,.4)}
+.eyebrow{font-size:11px;letter-spacing:.14em;color:var(--txt2);font-weight:800;text-transform:uppercase}
+.titulo{font-size:31px;line-height:1.02;font-weight:900;letter-spacing:-.03em;margin:6px 0 8px}
+.sub{color:var(--txt2);font-size:14.5px;line-height:1.5;margin:0}
+.muted{color:var(--mute);font-size:13px;line-height:1.5}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:15px;font-weight:900;letter-spacing:.05em;font-size:15px;
+  background:var(--acento);color:var(--sobre);margin-bottom:9px;transition:transform .1s}
+.btn.fantasma{background:transparent;color:var(--txt);border:1px solid var(--borde)}
+.btn.oro{background:var(--oro);color:#2a1d00}
+.btn:active{transform:scale(.98)}
+.fila{display:flex;gap:8px}.fila .btn{flex:1}
+.linea{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--borde)}
+.linea:last-child{border-bottom:0}
+.linea b{font-size:14px}.linea span{font-size:12.5px;color:var(--mute)}
+.tg{width:50px;height:30px;border-radius:99px;background:rgba(255,255,255,.14);position:relative;border:0;flex:none}
+.tg i{position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .15s}
+.tg.on{background:var(--acento)}.tg.on i{left:24px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--card2);border-radius:10px;padding:9px 10px}
+.stat span{display:block;font-size:10.5px;color:var(--mute);letter-spacing:.08em;font-weight:800;text-transform:uppercase}
+.stat b{font-size:21px;font-variant-numeric:tabular-nums}
+.paso{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--borde)}
+.paso:last-child{border-bottom:0}
+.paso .ic{font-size:22px;width:28px;text-align:center;flex:none}
+.paso b{display:block;font-size:14px}.paso span{font-size:13px;color:var(--txt2);line-height:1.45}
+.cuadro{display:flex;gap:6px;margin-top:8px}
+.cuadro i{flex:1;height:8px;border-radius:99px;background:rgba(255,255,255,.1);display:block}
+.cuadro i.ok{background:var(--acento)}.cuadro i.ahora{background:var(--oro)}.cuadro i.ko{background:var(--mal)}
+kbd{font:inherit;font-size:11.5px;font-weight:800;background:var(--card2);border:1px solid var(--borde);border-radius:6px;padding:1px 6px}
+
+/* ── la pista ── */
+#juego{padding:0;overflow:hidden;background:#051012;touch-action:none}
+#lienzo{position:absolute;inset:0;width:100%;height:100%;display:block}
+#hud{position:absolute;top:max(8px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:12px;
+  background:rgba(5,18,20,.86);border:1px solid var(--borde);border-radius:13px;padding:6px 13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.eq{display:flex;align-items:center;gap:7px;font-weight:900}
+.eq .nm{font-size:10.5px;letter-spacing:.12em;color:var(--mute)}
+.eq .jg{font-size:21px}.eq .pt{font-size:13.5px;color:var(--txt);background:rgba(255,255,255,.08);border-radius:6px;padding:1px 6px;min-width:26px;text-align:center}
+.eq.yo .jg{color:var(--pelota)}.eq.el .jg{color:var(--rival)}
+.saca{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--mute)}.saca.on{background:var(--pelota);border-color:var(--pelota)}
+#oroBanner{white-space:nowrap;position:absolute;top:calc(max(8px,env(safe-area-inset-top)) + 50px);left:50%;transform:translateX(-50%);z-index:5;display:none;
+  font-size:11px;font-weight:900;letter-spacing:.16em;color:#2a1d00;background:var(--oro);border-radius:99px;padding:4px 12px}
+#aviso{position:absolute;left:50%;top:40%;width:92%;transform:translate(-50%,-50%) scale(.9);z-index:6;text-align:center;pointer-events:none;
+  font-size:32px;font-weight:900;letter-spacing:-.02em;text-shadow:0 3px 16px rgba(0,0,0,.7);opacity:0;transition:opacity .18s,transform .18s}
+#aviso.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#aviso small{display:block;width:fit-content;max-width:100%;margin:7px auto 0;padding:4px 11px;border-radius:9px;background:rgba(6,18,16,.74);line-height:1.5;font-size:12.5px;letter-spacing:.1em;color:var(--txt2);font-weight:800}
+#pista-ayuda{position:absolute;left:50%;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 188px);transform:translateX(-50%);z-index:5;
+  background:rgba(5,18,20,.9);border:1px solid var(--borde);border-radius:12px;padding:8px 12px;font-size:13px;color:var(--txt);text-align:center;max-width:88%;pointer-events:none}
+#controles{position:absolute;left:0;right:0;bottom:0;height:210px;z-index:4;pointer-events:none}
+#joy{position:absolute;left:20px;bottom:calc(max(18px,env(safe-area-inset-bottom)) + 12px);width:132px;height:132px;border-radius:50%;
+  background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.15);pointer-events:auto;touch-action:none}
+#joyKnob{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;
+  background:rgba(220,245,74,.3);border:2px solid rgba(220,245,74,.75)}
+.accion{position:absolute;border-radius:50%;border:0;font-weight:900;letter-spacing:.04em;pointer-events:auto;touch-action:none;color:var(--sobre);transition:transform .08s}
+#bGolpe{right:20px;bottom:calc(max(18px,env(safe-area-inset-bottom)) + 18px);width:108px;height:108px;background:var(--pelota);font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.45)}
+#bGlobo{right:138px;bottom:calc(max(18px,env(safe-area-inset-bottom)) + 6px);width:72px;height:72px;background:var(--globo);font-size:11.5px}
+.accion.pulsado{transform:scale(.9);filter:brightness(1.15)}
+#bPausa{position:absolute;right:10px;top:max(9px,env(safe-area-inset-top));z-index:6;width:40px;height:40px;border-radius:11px;
+  border:1px solid var(--borde);background:rgba(5,18,20,.86);color:var(--txt);font-weight:900;font-size:14px}
+#teclas{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:4;font-size:12px;color:var(--mute);white-space:nowrap;display:none}
+#pausa{position:absolute;inset:0;z-index:8;background:rgba(3,12,14,.78);display:flex;align-items:center;justify-content:center;padding:20px}
+#pausa[hidden]{display:none}
+@media (hover:hover) and (pointer:fine){ #controles{display:none} #teclas{display:block} #pista-ayuda{bottom:44px} }
+</style>
+</head>
+<body>
+<section id="menu" class="pantalla"><div class="caja"></div></section>
+<section id="como" class="pantalla" hidden><div class="caja"></div></section>
+<section id="final" class="pantalla" hidden><div class="caja"></div></section>
+<section id="carrera" class="pantalla" hidden><div class="caja"></div></section>
+<section id="juego" class="pantalla" hidden>
+  <canvas id="lienzo"></canvas>
+  <div id="hud">
+    <div class="eq yo"><span class="saca" id="sacaYo"></span><span class="nm">VOS</span><span class="jg" id="jgYo">0</span><span class="pt" id="ptYo">0</span></div>
+    <div class="eq el"><span class="pt" id="ptEl">0</span><span class="jg" id="jgEl">0</span><span class="nm">ELLOS</span><span class="saca" id="sacaEl"></span></div>
+  </div>
+  <div id="oroBanner">PUNTO DE ORO</div>
+  <div id="aviso"></div>
+  <div id="pista-ayuda" hidden></div>
+  <div id="controles"><div id="joy"><div id="joyKnob"></div></div><button class="accion" id="bGlobo">GLOBO</button><button class="accion" id="bGolpe">GOLPE</button></div>
+  <div id="teclas">Mover <kbd>WASD</kbd>/<kbd>←↑↓→</kbd> · Golpe <kbd>Espacio</kbd> · Globo <kbd>K</kbd> · Pausa <kbd>P</kbd></div>
+  <button id="bPausa" aria-label="Pausa">II</button>
+  <div id="pausa" hidden><div class="caja"></div></div>
+</section>
+<script>
+'use strict';
+/* ═══════════════════════════════════════════════════════════════
+   LA CABRA · PÁDEL ARCADE
+   Pádel en tiempo real, 2 contra 2, visto desde arriba. La pista mide 10×20 m
+   como la de verdad: tu pareja abajo, la rival arriba, red en y = 10 y cristal
+   alrededor. La bola vive en 3D (x, y, altura z) y respeta las reglas del
+   pádel: bote en el suelo antes de la pared, un bote por lado, punto de oro.
+   ═══════════════════════════════════════════════════════════════ */
+const W = 10, L = 20, RED_Y = 10, RED_ALT = 0.92, PARED = 3.0, LINEA_SAQUE = 6.95;
+const G = 10.5;              // gravedad un pelín más alta que la real: juego más vivo
+const REST_SUELO = 0.62, REST_PARED = 0.7, ROCE = 0.86, R_BOLA = 0.1;
+const DUR_SWING = 0.34;      // ventana del golpe: generosa para el móvil
+const JUEGOS_GANAR = 3, PAUSA_PUNTO = 1.05;
+const NOM_PUNTO = ['0','15','30','40'];
+
+const hayDOM = typeof document !== 'undefined';
+const $ = s => hayDOM ? document.querySelector(s) : null;
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const rnd = (a,b) => a + Math.random()*(b-a);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+function gauss(){ let u = 0, v = 0; while(!u) u = Math.random(); while(!v) v = Math.random(); return Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v); }
+
+/* ── Preferencias y récords: se guardan en el dispositivo ── */
+const PREF_KEY = 'cabra_arcade_pref_v1', REC_KEY = 'cabra_arcade_rec_v1';
+function leerJSON(k, def){ try{ return Object.assign({}, def, JSON.parse((typeof localStorage!=='undefined' && localStorage.getItem(k)) || '{}')); }catch(e){ return Object.assign({}, def); } }
+function guardarJSON(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+let PREF = leerJSON(PREF_KEY, { asistencia:true, sonido:true, tutorialVisto:false });
+let REC  = leerJSON(REC_KEY,  { partidos:0, ganados:0, torneos:0, porTres:0, rallyMax:0, oros:0 });
+
+/* ── Sonido sintetizado: sin archivos, nada que cargar ── */
+const Sonido = (() => {
+  let ctx = null;
+  function listo(){
+    if(!PREF.sonido || !hayDOM) return null;
+    if(!ctx){ const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return null; ctx = new AC(); }
+    if(ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  function tono(f, dur, tipo, vol, f2){
+    const c = listo(); if(!c) return;
+    const o = c.createOscillator(), g = c.createGain(), t = c.currentTime;
+    o.type = tipo || 'sine'; o.frequency.setValueAtTime(f, t);
+    if(f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    g.gain.setValueAtTime(vol || .2, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + .03);
+  }
+  function ruido(dur, frec, vol){
+    const c = listo(); if(!c) return;
+    const n = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+    for(let i = 0; i < n; i++) d[i] = (Math.random()*2 - 1) * (1 - i/n);
+    const s = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain();
+    s.buffer = buf; fl.type = 'bandpass'; fl.frequency.value = frec; fl.Q.value = 1.1; g.gain.value = vol;
+    s.connect(fl).connect(g).connect(c.destination); s.start();
+  }
+  return {
+    desbloquear: listo,
+    golpe:  p => { ruido(.045, 1900, .25 + .35*p); tono(200 + 160*p, .07, 'triangle', .16); },
+    bote:   () => tono(110, .07, 'sine', .2, 70),
+    cristal:() => { tono(1320, .11, 'sine', .07); tono(2240, .08, 'sine', .045); },
+    red:    () => tono(140, .13, 'square', .07, 85),
+    punto:  gana => { tono(gana ? 523 : 330, .12, 'triangle', .14); setTimeout(()=>tono(gana ? 784 : 247, .18, 'triangle', .14), 115); },
+    grada:  () => ruido(1.0, 650, .22),
+  };
+})();
+
+/* ── Controles: joystick + botones en el móvil, teclado en el ordenador ── */
+const Input = { ax:0, ay:0, golpe:false, globo:false, teclas:new Set(), joyId:null };
+function ejeMovimiento(){
+  const t = Input.teclas;
+  let x = Input.ax, y = Input.ay;
+  if(!x && !y){
+    x = (t.has('ArrowRight')||t.has('KeyD') ? 1 : 0) - (t.has('ArrowLeft')||t.has('KeyA') ? 1 : 0);
+    y = (t.has('ArrowDown')||t.has('KeyS') ? 1 : 0) - (t.has('ArrowUp')||t.has('KeyW') ? 1 : 0);
+  }
+  const m = Math.hypot(x, y); if(m > 1){ x /= m; y /= m; }
+  return {x, y};
+}
+function prepararControles(){
+  if(!hayDOM) return;
+  addEventListener('keydown', e => {
+    if(!P || $('#juego').hidden) return;
+    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
+    if(e.repeat) return;
+    Input.teclas.add(e.code);
+    Sonido.desbloquear();
+    if(e.code === 'Space' || e.code === 'KeyJ') Input.golpe = true;
+    if(e.code === 'KeyK' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') Input.globo = true;
+    if(e.code === 'KeyP' || e.code === 'Escape') alternarPausa();
+  });
+  addEventListener('keyup', e => Input.teclas.delete(e.code));
+  addEventListener('blur', () => Input.teclas.clear());
+  const joy = $('#joy'), knob = $('#joyKnob');
+  const moverJoy = e => {
+    const r = joy.getBoundingClientRect(), R = r.width/2;
+    let dx = e.clientX - (r.left + R), dy = e.clientY - (r.top + R);
+    const m = Math.hypot(dx, dy); if(m > R){ dx *= R/m; dy *= R/m; }
+    knob.style.transform = `translate(${dx}px,${dy}px)`;
+    const mag = Math.hypot(dx, dy) / R;
+    Input.ax = mag < .16 ? 0 : dx/R; Input.ay = mag < .16 ? 0 : dy/R;
+  };
+  joy.addEventListener('pointerdown', e => { e.preventDefault(); Sonido.desbloquear(); Input.joyId = e.pointerId; joy.setPointerCapture(e.pointerId); moverJoy(e); });
+  joy.addEventListener('pointermove', e => { if(e.pointerId === Input.joyId) moverJoy(e); });
+  const soltar = e => { if(e.pointerId !== Input.joyId) return; Input.joyId = null; Input.ax = Input.ay = 0; knob.style.transform = ''; };
+  joy.addEventListener('pointerup', soltar); joy.addEventListener('pointercancel', soltar);
+  for(const [id, campo] of [['#bGolpe','golpe'], ['#bGlobo','globo']]){
+    const b = $(id);
+    b.addEventListener('pointerdown', e => { e.preventDefault(); Sonido.desbloquear(); Input[campo] = true; b.classList.add('pulsado'); });
+    const fin = () => b.classList.remove('pulsado');
+    b.addEventListener('pointerup', fin); b.addEventListener('pointercancel', fin); b.addEventListener('pointerleave', fin);
+  }
+  $('#bPausa').addEventListener('click', alternarPausa);
+  addEventListener('contextmenu', e => { if(!$('#juego').hidden) e.preventDefault(); });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LA BOLA Y LAS REGLAS
+   Suelo antes que pared, un solo bote por lado, la red y el cristal. Si una
+   bola bota y sale por encima del cristal, es punto del que la pegó: por 3
+   (fondo) o por 4 (lateral).
+   ═══════════════════════════════════════════════════════════════ */
+let P = null;   // el partido en curso
+
+function nuevaBola(){
+  return { x:5, y:15, z:.9, vx:0, vy:0, vz:0, botes:0, golpeo:null, cruzo:false, viva:true,
+           saque:false, porTres:false, ultimoTiro:null, golpeador:null, rastro:[] };
+}
+function ladoDe(y){ return y >= RED_Y ? 0 : 1; }   // 0 = vosotros (abajo) · 1 = ellos (arriba)
+
+/* Un paso de física. Con `sim` no se aplican reglas: sirve para predecir */
+function pasoBola(b, dt, sim){
+  const py = b.y;
+  b.vz -= G*dt;
+  b.x += b.vx*dt; b.y += b.vy*dt; b.z += b.vz*dt;
+  if(b.golpeo !== null && !b.cruzo && (py >= RED_Y) !== (b.y >= RED_Y)){
+    if(b.z < RED_ALT){
+      if(sim) return 'red';
+      b.y = py; b.vy *= -.15; b.vx *= .3;
+      return regla(b, 'red');
+    }
+    b.cruzo = true;
+  }
+  if(b.z <= 0 && b.vz < 0){
+    b.z = 0; b.vz = -b.vz*REST_SUELO; b.vx *= ROCE; b.vy *= ROCE;
+    const r = sim ? simBote(b) : regla(b, 'bote'); if(r) return r;
+  }
+  if(b.x < R_BOLA || b.x > W - R_BOLA){
+    if(b.z > PARED) return sim ? 'fuera' : regla(b, 'fuera', 'lateral');
+    b.x = clamp(b.x, R_BOLA, W - R_BOLA); b.vx = -b.vx*REST_PARED;
+    const r = sim ? simPared(b) : regla(b, 'pared'); if(r) return r;
+  }
+  if(b.y < R_BOLA || b.y > L - R_BOLA){
+    if(b.z > PARED) return sim ? 'fuera' : regla(b, 'fuera', 'fondo');
+    b.y = clamp(b.y, R_BOLA, L - R_BOLA); b.vy = -b.vy*REST_PARED;
+    const r = sim ? simPared(b) : regla(b, 'pared'); if(r) return r;
+  }
+  return null;
+}
+function reboteRemate(b){ if(b.porTres && b.botes === 1){ b.vz *= 1.9; b.vy *= 1.25; } }
+function simBote(b){
+  if(!b.cruzo) return 'corta';
+  if(ladoDe(b.y) === b.golpeo) return 'vuelve';
+  b.botes++; reboteRemate(b);
+  return b.botes >= 2 ? 'dobleBote' : null;
+}
+function simPared(b){ return (!b.cruzo || b.botes === 0) ? 'paredDirecta' : null; }
+
+function enCajaSaque(b){
+  const rec = 1 - b.golpeo;
+  const fondo = rec === 1 ? (b.y >= RED_Y - LINEA_SAQUE - .15 && b.y <= RED_Y) : (b.y <= RED_Y + LINEA_SAQUE + .15 && b.y >= RED_Y);
+  const cruzado = P.saqueX < 5 ? b.x >= 4.85 : b.x <= 5.15;
+  return fondo && cruzado;
+}
+function regla(b, ev, extra){
+  const pega = b.golpeo; if(pega === null) return null;
+  const recibe = 1 - pega;
+  if(ev === 'red'){ Sonido.red(); return terminar(recibe, 'A la red'); }
+  if(ev === 'bote'){
+    if(!b.cruzo) return terminar(recibe, 'No pasa la red');
+    if(ladoDe(b.y) === pega) return terminar(pega, 'No la devuelven');
+    b.botes++;
+    if(b.saque && b.botes === 1 && !enCajaSaque(b)) return terminar(recibe, 'Falta de saque');
+    reboteRemate(b);
+    if(b.botes >= 2) return terminar(pega, b.ultimoTiro === 'dejada' ? '¡Dejada!' : b.ultimoTiro === 'remate' ? '¡Remate ganador!' : 'Doble bote');
+    Sonido.bote(); Efectos.bote(b.x, b.y);
+    return null;
+  }
+  if(ev === 'pared'){
+    if(!b.cruzo) return terminar(recibe, 'Pared en su campo');
+    if(b.botes === 0) return terminar(recibe, 'Pared directa');
+    Sonido.cristal(); Efectos.cristal(b.x, b.y);
+    return null;
+  }
+  if(ev === 'fuera'){
+    if(b.cruzo && b.botes >= 1 && ladoDe(b.y) === recibe) return terminar(pega, extra === 'fondo' ? '¡Por 3!' : '¡Por 4!', {porTres:true});
+    return terminar(recibe, 'Fuera');
+  }
+  return null;
+}
+function terminar(ganador, motivo, extra){
+  const b = P.bola;
+  if(!b.viva) return 'fin';
+  b.viva = false;
+  finPunto(ganador, motivo, extra || {});
+  return 'fin';
+}
+
+/* Adónde va a ir la bola: la usan la máquina y la asistencia */
+function predecirBola(b, maxT){
+  const c = Object.assign({}, b, {rastro:null}), out = [], dt = 1/60;
+  for(let t = dt; t <= maxT; t += dt){
+    const r = pasoBola(c, dt, true);
+    out.push({ t, x:c.x, y:c.y, z:c.z, botes:c.botes, cruzo:c.cruzo, saque:c.saque });
+    if(r) break;
+  }
+  return out;
+}
+function actualizarBola(dt){
+  const b = P.bola; if(!b.viva || P.estado !== 'juego') return;
+  for(let i = 0; i < 3; i++) if(pasoBola(b, dt/3, false)) break;
+  b.rastro.push({x:b.x, y:b.y, z:b.z}); if(b.rastro.length > 9) b.rastro.shift();
+  /* red de seguridad: una bola que no se decide en 7 s es del que la pegó */
+  if(b.viva && P.t - P.tGolpe > 7) terminar(b.golpeo === null ? 1 : b.golpeo, 'Bola muerta');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOS GOLPES · TU JUGADOR · LA MÁQUINA
+   ═══════════════════════════════════════════════════════════════ */
+/* dist = metros desde la red hasta donde bota la bola en el otro campo */
+const TIROS = {
+  saque:  {T:1.05, dist:[4.2,6.4], nom:'Saque'},
+  drive:  {T:0.82, dist:[5.8,8.8], nom:'Drive'},
+  volea:  {T:0.62, dist:[3.8,7.4], nom:'Volea'},
+  globo:  {T:1.95, dist:[7.9,9.4], nom:'Globo'},
+  remate: {T:0.36, dist:[2.6,5.2], nom:'Remate'},
+  bandeja:{T:0.80, dist:[5.6,8.2], nom:'Bandeja'},
+  dejada: {T:0.95, dist:[0.9,2.3], nom:'Dejada'},
+};
+function tiroHacia(b, tx, ty, T){ return { vx:(tx-b.x)/T, vy:(ty-b.y)/T, vz:(-b.z)/T + .5*G*T }; }
+function pasaRed(b, v, margen){
+  if(Math.abs(v.vy) < 1e-4) return false;
+  const tn = (RED_Y - b.y) / v.vy; if(tn <= 0) return true;
+  return b.z + v.vz*tn - .5*G*tn*tn >= RED_ALT + margen;
+}
+function golpear(j, tipo, calidad, apuntarX){
+  const b = P.bola, T = TIROS[tipo];
+  /* Dos cosas distintas: la dispersión normal (dónde bota dentro de la pista) y
+     el FALLO, que es explícito. Cuanto peor el contacto, más probable fallar: a
+     la red, larga contra el cristal o ancha contra la pared. Así los puntos se
+     acaban solos, con errores y con ganadores, y no a los 80 golpes. */
+  const disp = (1 - calidad) * .9 + .1;
+  let d = clamp(rnd(T.dist[0], T.dist[1]) + gauss()*disp*.5, .8, 9.5);
+  let tx = apuntarX != null ? apuntarX : (j.x < 5 ? rnd(6.2, 8.8) : rnd(1.2, 3.8));
+  tx = clamp(tx + gauss()*disp*.7, .5, W - .5);
+  const pFallo = clamp(.02 + Math.pow(1 - calidad, 2) * .4, .02, .5) * (j.multFallo || 1);
+  let fallo = Math.random() < pFallo ? pick(['red','larga','ancha','larga']) : null;
+  if(tipo === 'saque' && fallo) fallo = Math.random() < .4 ? 'red' : null;
+  if(fallo === 'larga') d = rnd(10.3, 11.4);
+  if(fallo === 'ancha') tx = Math.random() < .5 ? rnd(-.8, -.3) : rnd(W + .3, W + .8);
+  const ty = j.lado === 0 ? RED_Y - d : RED_Y + d;
+  let TT = T.T * (1.15 - .3*calidad) * (j.multT || 1), v = tiroHacia(b, tx, ty, TT);
+  for(let k = 0; k < 14 && !pasaRed(b, v, .12); k++){ TT *= 1.08; v = tiroHacia(b, tx, ty, TT); }
+  if(fallo === 'red') v.vz *= .5;
+  Object.assign(b, { vx:v.vx, vy:v.vy, vz:v.vz, golpeo:j.lado, botes:0, cruzo:false, saque:tipo==='saque',
+                     porTres: tipo==='remate' && calidad >= (j.umbralPorTres || .78), ultimoTiro:tipo, golpeador:j.id });
+  P.tGolpe = P.t; P.rally++;
+  P.prediccion = predecirBola(b, 4);
+  /* Nadie lee la bola perfecta: cuanto más rápida y peor el que defiende, más
+     se equivoca al principio. Así hay bolas que no llegan y golpes ganadores. */
+  for(const o of P.jug) if(o.lado !== j.lado && !o.humano){
+    const e = (1 - o.hab)*2.2 + clamp((Math.hypot(v.vx, v.vy) - 9)/9, 0, 1.2);
+    o.lectura = { dx:gauss()*e, dy:gauss()*e*.8, t0:P.t };
+  }
+  j.anim = .22; j.cd = .18; j.ultimoTiro = tipo;
+  if(j.humano){ P.stats.golpes++; if(tipo === 'globo') P.stats.globos++; if(tipo === 'remate') P.stats.remates++; }
+  Efectos.golpe(b.x, b.y, tipo, calidad);
+  Sonido.golpe(tipo === 'remate' ? 1 : calidad*.75);
+}
+function alcanzable(j){
+  const b = P.bola;
+  if(P.estado !== 'juego' || !b.viva || b.golpeo === null || b.golpeo === j.lado) return false;
+  if(!b.cruzo || ladoDe(b.y) !== j.lado || (b.saque && b.botes === 0)) return false;
+  return Math.hypot(b.x - j.x, b.y - j.y) <= j.alcance && b.z <= 2.9;
+}
+function moverHacia(j, tx, ty, vel){
+  const dx = tx - j.x, dy = ty - j.y, d = Math.hypot(dx, dy);
+  if(d < .05){ j.vx *= .6; j.vy *= .6; return; }
+  const s = Math.min(vel, d*6); j.vx = dx/d*s; j.vy = dy/d*s;
+}
+function aplicarMovimiento(j, dt){
+  j.x = clamp(j.x + j.vx*dt, .35, W - .35);
+  j.y = clamp(j.y + j.vy*dt, j.lado === 0 ? RED_Y + .45 : .35, j.lado === 0 ? L - .35 : RED_Y - .45);
+}
+
+/* ── Tu jugador ── */
+function tipoHumano(j, eje){
+  const b = P.bola, cercaRed = Math.abs(j.y - RED_Y) < 5;
+  if(j.pedido === 'globo') return 'globo';
+  if(b.z > 1.65) return cercaRed ? 'remate' : 'bandeja';
+  if(b.botes === 0) return 'volea';
+  if(eje.y > .55 && cercaRed) return 'dejada';
+  return 'drive';
+}
+function actualizarHumano(j, dt){
+  if(P.humanoIA) return actualizarIA(j, dt);          // para las pruebas automáticas
+  const eje = ejeMovimiento(), mov = Math.hypot(eje.x, eje.y) > .12;
+  if(mov){ j.vx = eje.x*j.vel; j.vy = eje.y*j.vel; j.ultimoMov = P.t; }
+  else if(PREF.asistencia && P.t - (j.ultimoMov || -9) > .2){ const o = objetivoJugador(j); moverHacia(j, o.x, o.y, j.vel*.92); }
+  else { j.vx *= .75; j.vy *= .75; }
+  aplicarMovimiento(j, dt);
+  if(Input.golpe || Input.globo){
+    if(j.swing <= 0){ j.swing = DUR_SWING; j.pedido = Input.globo ? 'globo' : 'golpe'; }
+    Input.golpe = Input.globo = false;
+  }
+  if(j.swing > 0){
+    if(P.estado === 'saque' && P.saqueDe === j.id){ sacar(j, .8 + .2*Math.random()); j.swing = 0; }
+    else if(alcanzable(j)){
+      const prog = 1 - j.swing/DUR_SWING, d = Math.hypot(P.bola.x - j.x, P.bola.y - j.y);
+      const dificultad = clamp((Math.hypot(P.bola.vx, P.bola.vy) - 9)/16, 0, .25);
+      const cal = clamp((1 - Math.abs(prog - .4)/.6) * (1 - .3*clamp(d/j.alcance, 0, 1)) + .15 + (j.bonusCal || 0) - dificultad, .15, 1);
+      golpear(j, tipoHumano(j, eje), cal, Math.abs(eje.x) > .3 ? 5 + eje.x*3.7 : null);
+      if(cal >= .88) Efectos.texto(j.x, j.y - .9, '¡PERFECTO!', '#F5C542');
+      j.swing = 0;
+    } else j.swing -= dt;
+  }
+  if(j.anim > 0) j.anim -= dt;
+}
+
+/* ── La máquina: tu pareja y los rivales ── */
+function esMiBola(j, s){
+  const comp = P.jug.find(o => o.lado === j.lado && o.id !== j.id);
+  if(j.carril === 'izq' ? s.x >= 5.4 : s.x < 4.6) return false;
+  if(s.x >= 4.6 && s.x < 5.4) return Math.hypot(s.x-j.x, s.y-j.y) <= Math.hypot(s.x-comp.x, s.y-comp.y);
+  return true;
+}
+function objetivoJugador(j){
+  const b = P.bola;
+  if(P.estado === 'juego' && b.viva && b.golpeo !== null && b.golpeo !== j.lado && P.t - P.tGolpe >= (j.humano ? 0 : j.reaccion)){
+    const pasado = P.t - P.tGolpe, ajuste = j.lado === 0 ? .3 : -.3;
+    let reserva = null;
+    for(const s of P.prediccion){
+      if(s.t < pasado || ladoDe(s.y) !== j.lado || !s.cruzo || (s.saque && s.botes === 0)) continue;
+      const ok = s.botes >= 1 ? (s.z >= .2 && s.z <= 1.6) : (s.z >= .6 && s.z <= 2.3 && Math.abs(s.y - RED_Y) < 5.5);
+      if(!ok || !esMiBola(j, s)) continue;
+      if(!reserva) reserva = s;
+      if(Math.hypot(s.x - j.x, s.y - j.y) / j.vel <= s.t - pasado + .06) return conLectura(j, s, ajuste);
+    }
+    if(reserva) return conLectura(j, reserva, ajuste);
+  }
+  return posicionBase(j);
+}
+function conLectura(j, s, ajuste){
+  const L0 = j.lectura;
+  if(!L0 || j.humano) return {x:s.x, y:s.y + ajuste, va:true};
+  const k = clamp(1 - (P.t - L0.t0) / (s.t + .001) * .7, .3, 1);   // el error se corrige al acercarse la bola
+  return {x:s.x + L0.dx*k, y:s.y + ajuste + L0.dy*k, va:true};
+}
+function posicionBase(j){
+  const b = P.bola, x = j.carril === 'izq' ? 2.7 : 7.3;
+  let arriba = P.estado === 'juego' && b.viva && b.golpeo === j.lado;
+  if(P.estado === 'juego' && b.viva && b.golpeo !== null && b.golpeo !== j.lado && (b.ultimoTiro === 'globo' || b.ultimoTiro === 'remate')) arriba = false;
+  return { x, y: arriba ? (j.lado === 0 ? 12.7 : 7.3) : (j.lado === 0 ? 17.5 : 2.5), va:false };
+}
+function actualizarIA(j, dt){
+  const o = objetivoJugador(j);
+  moverHacia(j, o.x, o.y, j.vel * (o.va ? 1 : .7));
+  aplicarMovimiento(j, dt);
+  if(j.cd > 0) j.cd -= dt;
+  if(j.anim > 0) j.anim -= dt;
+  if(P.estado === 'saque' && P.saqueDe === j.id){ if(P.timer <= 0) sacar(j, clamp(j.hab + .15 + gauss()*.08, .3, 1)); return; }
+  if(j.cd <= 0 && alcanzable(j)) decidirIA(j);
+}
+function decidirIA(j){
+  const b = P.bola, rivales = P.jug.filter(o => o.lado !== j.lado);
+  const enRed = rivales.filter(o => Math.abs(o.y - RED_Y) < 4.3).length, cercaRed = Math.abs(j.y - RED_Y) < 5;
+  let tipo;
+  if(b.z > 1.7) tipo = cercaRed && Math.random() < j.agresivo ? 'remate' : 'bandeja';
+  else if(enRed >= 1 && Math.random() < j.globeador) tipo = 'globo';
+  else if(b.botes === 0) tipo = 'volea';
+  else if(enRed === 0 && cercaRed && Math.random() < .22) tipo = 'dejada';
+  else tipo = 'drive';
+  const cerca = rivales.slice().sort((p,q) => Math.abs(p.x - b.x) - Math.abs(q.x - b.x))[0];
+  /* Devolver un remate o una bola muy baja o muy alta cuesta más */
+  const dificultad = clamp((Math.hypot(b.vx, b.vy) - 8)/14, 0, .35) + (b.z > 2.3 || b.z < .25 ? .12 : 0);
+  golpear(j, tipo, clamp(j.hab + gauss()*.12 - dificultad, .12, .97), cerca.x < 5 ? rnd(6.2, 8.9) : rnd(1.1, 3.8));
+}
+function sacar(j, calidad){
+  const b = P.bola;
+  Object.assign(b, { x:j.x, y:j.y + (j.lado === 0 ? -.35 : .35), z:.9, viva:true, rastro:[] });
+  P.saqueX = j.x; P.estado = 'juego';
+  golpear(j, 'saque', calidad, j.x < 5 ? rnd(6.2, 8.6) : rnd(1.4, 3.8));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EFECTOS · DIBUJO · MARCADOR
+   ═══════════════════════════════════════════════════════════════ */
+const Efectos = {
+  particulas:[], shake:0,
+  reset(){ this.particulas = []; this.shake = 0; },
+  golpe(x, y, tipo, cal){
+    const fuerte = tipo === 'remate', n = fuerte ? 16 : 6;
+    for(let i = 0; i < n; i++) this.particulas.push({ x, y, vx:rnd(-2.5,2.5), vy:rnd(-2.5,2.5), vida:.35, max:.35, color: fuerte ? '#F5C542' : '#DCF54A' });
+    this.particulas.push({ x, y, anillo:true, vida:.25, max:.25, r0:.3, r1: fuerte ? 1.6 : .9, color: fuerte ? '#F5C542' : 'rgba(255,255,255,.7)' });
+    if(fuerte) this.sacudir(6);
+  },
+  bote(x, y){ this.particulas.push({ x, y, anillo:true, vida:.3, max:.3, r0:.1, r1:.6, color:'rgba(255,255,255,.55)' }); },
+  cristal(x, y){ this.particulas.push({ x, y, anillo:true, vida:.4, max:.4, r0:.2, r1:1.1, color:'#7FD3F7' }); this.sacudir(2); },
+  sacudir(m){ this.shake = Math.max(this.shake, m); },
+  confeti(){ for(let i = 0; i < 40; i++) this.particulas.push({ x:rnd(1,9), y:rnd(11,19), vx:rnd(-1.5,1.5), vy:rnd(-3,-.5), vida:rnd(.7,1.2), max:1.2, color:pick(['#DCF54A','#22D3A5','#F5C542','#7FD3F7']) }); },
+  texto(x, y, t, color){ this.particulas.push({ x, y, texto:t, vida:.8, max:.8, color }); },
+  actualizar(dt){
+    for(const p of this.particulas){ p.vida -= dt; if(!p.anillo && !p.texto){ p.x += p.vx*dt; p.y += p.vy*dt; } }
+    this.particulas = this.particulas.filter(p => p.vida > 0);
+    this.shake *= Math.pow(.02, dt);
+  },
+};
+
+let CV = null, CX = null, ESC = 20, OX = 0, OY = 0, DPR = 1;
+function ajustarLienzo(){
+  if(!hayDOM) return;
+  CV = $('#lienzo'); CX = CV.getContext('2d');
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  const w = innerWidth, h = innerHeight;
+  CV.width = Math.round(w*DPR); CV.height = Math.round(h*DPR);
+  const tactil = !matchMedia('(hover:hover) and (pointer:fine)').matches;
+  const arriba = 64, abajo = tactil ? 168 : 44, m = .7;
+  ESC = Math.min((w - 20) / (W + m*2), (h - arriba - abajo) / (L + m*2));
+  OX = (w - W*ESC) / 2; OY = arriba + ((h - arriba - abajo) - L*ESC) / 2;
+}
+const sx = x => OX + x*ESC;
+const sy = (y, z) => OY + y*ESC - (z || 0)*ESC*.55;     // la altura se dibuja subiendo en pantalla
+
+function linea(c, x1, y1, x2, y2){ c.beginPath(); c.moveTo(sx(x1), sy(y1)); c.lineTo(sx(x2), sy(y2)); c.stroke(); }
+function circulo(c, x, y, r){ c.beginPath(); c.arc(x, y, r, 0, Math.PI*2); }
+
+function dibujarPista(c){
+  const m = .7;
+  c.fillStyle = '#0A2626'; c.fillRect(sx(-m), sy(-m), (W + m*2)*ESC, (L + m*2)*ESC);
+  const g = c.createLinearGradient(0, sy(0), 0, sy(L)); g.addColorStop(0, '#1F6E57'); g.addColorStop(.5, '#1A6450'); g.addColorStop(1, '#1F6E57');
+  c.fillStyle = g; c.fillRect(sx(0), sy(0), W*ESC, L*ESC);
+  /* el cristal */
+  c.fillStyle = 'rgba(127,211,247,.10)';
+  c.fillRect(sx(-m), sy(-m), (W + m*2)*ESC, m*ESC); c.fillRect(sx(-m), sy(L), (W + m*2)*ESC, m*ESC);
+  c.fillRect(sx(-m), sy(0), m*ESC, L*ESC); c.fillRect(sx(W), sy(0), m*ESC, L*ESC);
+  c.strokeStyle = 'rgba(170,225,255,.6)'; c.lineWidth = Math.max(2.5, ESC*.12); c.strokeRect(sx(0), sy(0), W*ESC, L*ESC);
+  /* líneas */
+  c.strokeStyle = 'rgba(255,255,255,.82)'; c.lineWidth = Math.max(1.5, ESC*.06);
+  linea(c, 0, RED_Y - LINEA_SAQUE, W, RED_Y - LINEA_SAQUE); linea(c, 0, RED_Y + LINEA_SAQUE, W, RED_Y + LINEA_SAQUE);
+  linea(c, 5, RED_Y - LINEA_SAQUE, 5, RED_Y + LINEA_SAQUE);
+  /* la red, con su sombra */
+  c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(sx(0), sy(RED_Y) + 2, W*ESC, Math.max(4, ESC*.22));
+  c.fillStyle = '#E8F1EE'; c.fillRect(sx(-.15), sy(RED_Y) - Math.max(2, ESC*.08), (W + .3)*ESC, Math.max(3, ESC*.16));
+  c.fillStyle = '#2B3B38'; c.fillRect(sx(-.3), sy(RED_Y) - ESC*.3, ESC*.3, ESC*.6); c.fillRect(sx(W), sy(RED_Y) - ESC*.3, ESC*.3, ESC*.6);
+}
+function dibujarJugador(c, j){
+  const x = sx(j.x), y = sy(j.y), r = Math.max(9, .42*ESC);
+  c.fillStyle = 'rgba(0,0,0,.28)'; c.beginPath(); c.ellipse(x, y + r*.55, r*1.05, r*.55, 0, 0, Math.PI*2); c.fill();
+  if(j.humano && alcanzable(j)){ const dulce = P.bola.z > .45 && P.bola.z < 1.5; c.strokeStyle = dulce ? '#F5C542' : 'rgba(220,245,74,.9)'; c.lineWidth = dulce ? 4 : 2.5; circulo(c, x, y, j.alcance*ESC*(dulce ? 1 + .04*Math.sin(P.t*30) : 1)); c.stroke(); }
+  c.fillStyle = j.color; circulo(c, x, y, r); c.fill();
+  c.lineWidth = 2; c.strokeStyle = 'rgba(0,0,0,.35)'; c.stroke();
+  /* la pala: gira hacia la bola cuando golpea */
+  const b = P.bola, haciaRed = j.lado === 0 ? -Math.PI/2 : Math.PI/2;
+  let ang = haciaRed + (j.carril === 'izq' ? .9 : -.9) * (j.lado === 0 ? 1 : -1);
+  if(j.anim > 0) ang += (j.carril === 'izq' ? -1 : 1) * (j.lado === 0 ? 1 : -1) * (1 - j.anim/.22) * 2.2;
+  else if(j.swing > 0) ang += (j.carril === 'izq' ? 1 : -1) * (j.lado === 0 ? 1 : -1) * .5;
+  const px = x + Math.cos(ang)*r*1.45, py = y + Math.sin(ang)*r*1.45;
+  c.strokeStyle = '#11302B'; c.lineWidth = Math.max(3, r*.28); c.beginPath(); c.moveTo(x + Math.cos(ang)*r*.8, y + Math.sin(ang)*r*.8); c.lineTo(px, py); c.stroke();
+  c.fillStyle = '#11302B'; circulo(c, px, py, r*.55); c.fill(); c.strokeStyle = j.color; c.lineWidth = 2; c.stroke();
+  if(j.humano){
+    c.fillStyle = '#DCF54A'; c.font = `900 ${Math.max(10, ESC*.46)}px Inter, system-ui, sans-serif`; c.textAlign = 'center';
+    c.textBaseline = 'top'; c.fillText('TÚ', x, y + r*1.15 + 2); c.textBaseline = 'alphabetic';
+  }
+  void b;
+}
+function dibujarBola(c){
+  const b = P.bola; if(!b) return;
+  if(P.estado === 'juego' && b.golpeo === 1 && PREF.asistencia){
+    const cae = P.prediccion.find(s => s.botes >= 1 && s.t > P.t - P.tGolpe);
+    if(cae && ladoDe(cae.y) === 0){ c.strokeStyle = 'rgba(220,245,74,.45)'; c.lineWidth = 2; c.beginPath(); c.ellipse(sx(cae.x), sy(cae.y), ESC*.45, ESC*.28, 0, 0, Math.PI*2); c.stroke(); }
+  }
+  c.fillStyle = `rgba(0,0,0,${clamp(.35 - b.z*.07, .08, .35)})`;
+  c.beginPath(); c.ellipse(sx(b.x), sy(b.y), Math.max(4, ESC*.16), Math.max(2.5, ESC*.09), 0, 0, Math.PI*2); c.fill();
+  b.rastro.forEach((p, i) => { c.fillStyle = `rgba(220,245,74,${(i/b.rastro.length)*.28})`; circulo(c, sx(p.x), sy(p.y, p.z), Math.max(2.5, ESC*.1)); c.fill(); });
+  const r = Math.max(4.5, ESC*.16) * (1 + b.z*.09);
+  c.fillStyle = b.porTres ? '#FFE27A' : '#DCF54A'; circulo(c, sx(b.x), sy(b.y, b.z), r); c.fill();
+  c.strokeStyle = 'rgba(0,0,0,.4)'; c.lineWidth = 1.5; c.stroke();
+}
+function dibujar(){
+  if(!hayDOM || !CX || !P) return;
+  const c = CX;
+  c.setTransform(DPR, 0, 0, DPR, 0, 0);
+  c.fillStyle = '#051012'; c.fillRect(0, 0, innerWidth, innerHeight);
+  c.save();
+  const s = Efectos.shake; if(s > .3) c.translate(rnd(-s, s)*.7, rnd(-s, s)*.7);
+  dibujarPista(c);
+  const lejos = P.jug.filter(j => j.lado === 1), cerca = P.jug.filter(j => j.lado === 0);
+  lejos.forEach(j => dibujarJugador(c, j));
+  if(P.bola.y < RED_Y) dibujarBola(c);
+  cerca.forEach(j => dibujarJugador(c, j));
+  if(P.bola.y >= RED_Y) dibujarBola(c);
+  for(const p of Efectos.particulas){
+    const a = p.vida / p.max;
+    if(p.texto){ c.globalAlpha = a; c.fillStyle = p.color; c.font = `900 ${Math.max(13, ESC*.6)}px Inter, system-ui, sans-serif`; c.textAlign = 'center'; c.fillText(p.texto, sx(p.x), sy(p.y, 1.4) - (1-a)*24); continue; }
+    if(p.anillo){ c.strokeStyle = p.color; c.globalAlpha = a; c.lineWidth = 2.5; circulo(c, sx(p.x), sy(p.y), (p.r0 + (p.r1 - p.r0)*(1 - a))*ESC); c.stroke(); }
+    else { c.fillStyle = p.color; c.globalAlpha = a; circulo(c, sx(p.x), sy(p.y, .6), Math.max(1.5, ESC*.07)); c.fill(); }
+  }
+  c.globalAlpha = 1;
+  c.restore();
+}
+
+function actualizarHUD(){
+  if(!hayDOM || !P) return;
+  $('#jgYo').textContent = P.juegos[0]; $('#jgEl').textContent = P.juegos[1];
+  $('#ptYo').textContent = NOM_PUNTO[Math.min(P.puntos[0], 3)]; $('#ptEl').textContent = NOM_PUNTO[Math.min(P.puntos[1], 3)];
+  $('#sacaYo').classList.toggle('on', P.sacaLado === 0); $('#sacaEl').classList.toggle('on', P.sacaLado === 1);
+  const oroB = $('#oroBanner'), esOro = P.puntos[0] === 3 && P.puntos[1] === 3;
+  oroB.textContent = P.momento ? (esOro ? 'PUNTO DE ORO · ' : '') + MOMENTOS[P.momento.tipo].titulo : 'PUNTO DE ORO';
+  oroB.style.display = (P.momento || esOro) && P.estado !== 'fin' ? 'block' : 'none';
+}
+let avisoTimer = null;
+function mostrarAviso(t, sub, color, dur){
+  if(!hayDOM) return;
+  const a = $('#aviso');
+  a.innerHTML = `<span style="color:${color || '#fff'}">${t}</span>${sub ? `<small>${sub}</small>` : ''}`;
+  a.classList.add('on'); clearTimeout(avisoTimer);
+  avisoTimer = setTimeout(() => a.classList.remove('on'), (dur || 1.2)*1000);
+}
+function mostrarAyuda(t){ if(!hayDOM) return; const e = $('#pista-ayuda'); e.hidden = !t; if(t) e.textContent = t; }
+
+/* ═══════════════════════════════════════════════════════════════
+   PARTIDO · TORNEO · PANTALLAS
+   ═══════════════════════════════════════════════════════════════ */
+const NIVELES = [
+  { ronda:'CUARTOS',   pareja:'Los Muros',           juego:'globo y paciencia', hab:.42, vel:3.8, reaccion:.3,  agresivo:.35, globeador:.5 },
+  { ronda:'SEMIFINAL', pareja:'Los Cañones',         juego:'potencia y remate', hab:.56, vel:4.3, reaccion:.22, agresivo:.6,  globeador:.3 },
+  { ronda:'FINAL',     pareja:'Los Reyes de la Red', juego:'todo a la red',     hab:.7,  vel:4.8, reaccion:.16, agresivo:.65, globeador:.4 },
+];
+let TORNEO = null;
+
+function crearJugador(id, lado, carril, humano, cfg){
+  return Object.assign({ id, lado, carril, humano, x: carril === 'izq' ? 2.7 : 7.3, y: lado === 0 ? 17.5 : 2.5, vx:0, vy:0,
+    vel:5, alcance:1.3, hab:.6, reaccion:.18, agresivo:.5, globeador:.35, swing:0, cd:0, anim:0, pedido:'golpe', ultimoMov:-9, color:'#fff' }, cfg);
+}
+function iniciarPartido(modo, nivel, opciones){
+  const o = opciones || {}, M = o.momento || null;
+  const N = M ? { ronda:MOMENTOS[M.tipo].titulo, pareja:`${o.rival.nombre.split(' ')[0]} / ${o.rival.nombre2.split(' ')[0]}`, juego:o.rival.juego,
+                  hab:o.rival.hab, vel:o.rival.vel, reaccion:o.rival.reaccion, agresivo:o.rival.agresivo, globeador:o.rival.globeador } : NIVELES[nivel];
+  const carril = o.carril || 'izq', otro = carril === 'izq' ? 'der' : 'izq';
+  const H = o.humano || { vel:5.1, alcance:1.3, multT:1, bonusCal:0, multFallo:1, umbralPorTres:.78 };
+  const PA = o.pareja || { hab:.6, vel:4.4, alcance:1.15, reaccion:.2 };
+  P = { modo, nivel, rival:N, momento:M, estado:'saque', t:0, tGolpe:0, timer:0, lento:0, finMomento:null,
+        puntos: M ? M.inicio.slice() : [0,0], juegos:[0,0], sacaLado: M ? M.saca : (Math.random() < .5 ? 0 : 1),
+        saqueDe:0, saqueX:5, rally:0, prediccion:[], pausa:false, humanoIA:!!o.humanoIA, bola:nuevaBola(),
+        stats:{ golpes:0, globos:0, remates:0, porTres:0, rallyMax:0, orosJ:0, orosG:0 }, puntosJugados:0,
+        jug:[
+          crearJugador(0, 0, carril, true,  { vel:H.vel, alcance:H.alcance + (PREF.asistencia ? .1 : 0), hab:.66, multT:H.multT, bonusCal:H.bonusCal, multFallo:H.multFallo, umbralPorTres:H.umbralPorTres, color:'#DCF54A' }),
+          crearJugador(1, 0, otro, false,   { vel:PA.vel, alcance:PA.alcance, hab:PA.hab, reaccion:PA.reaccion, agresivo:.55, globeador:.35, color:'#9BE36B' }),
+          crearJugador(2, 1, 'izq', false,  { vel:N.vel, alcance:1.15, hab:N.hab, reaccion:N.reaccion, agresivo:N.agresivo, globeador:N.globeador, color:'#FF8A7A' }),
+          crearJugador(3, 1, 'der', false,  { vel:N.vel, alcance:1.15, hab:N.hab, reaccion:N.reaccion, agresivo:N.agresivo, globeador:N.globeador, color:'#FFB29E' }),
+        ] };
+  Efectos.reset();
+  if(hayDOM){
+    mostrarPantalla('juego');
+    if(M) mostrarAviso(MOMENTOS[M.tipo].titulo, `empezáis ${textoPuntos(M.inicio)}<br>juegan a ${N.juego}`, '#F5C542', 2);
+    else mostrarAviso(N.pareja, `${modo === 'torneo' ? N.ronda + ' · ' : ''}juegan a ${N.juego}`, '#FF8A7A', 1.8);
+  }
+  prepararSaque();
+}
+function prepararSaque(){
+  const lado = P.sacaLado, equipo = P.jug.filter(j => j.lado === lado);
+  const servidor = equipo[Math.floor((P.juegos[0] + P.juegos[1]) / 2) % 2];
+  P.saqueDe = servidor.id;
+  for(const j of P.jug){
+    j.x = j.carril === 'izq' ? 2.7 : 7.3;
+    j.y = j.lado === lado ? (j === servidor ? (lado === 0 ? 17.4 : 2.6) : (lado === 0 ? 12.8 : 7.2)) : (j.lado === 0 ? 18.1 : 1.9);
+    j.vx = j.vy = 0; j.swing = 0; j.cd = 0; j.anim = 0;
+  }
+  P.bola = Object.assign(nuevaBola(), { x:servidor.x, y:servidor.y + (lado === 0 ? -.35 : .35), z:.9 });
+  P.estado = 'saque'; P.rally = 0; P.prediccion = [];
+  P.timer = servidor.humano && !P.humanoIA ? 2.2 : .6;
+  actualizarHUD();
+  mostrarAyuda(servidor.humano && !P.humanoIA ? 'Te toca sacar: pulsa GOLPE' : (P.puntosJugados < 3 && !PREF.tutorialVisto ? consejo() : ''));
+}
+function consejo(){ return ['Muévete con el joystick y pulsa GOLPE cuando la bola llegue al anillo', 'Si están en la red, GLOBO al fondo', 'Bola alta cerca de la red = remate. Si bota y sale por el cristal, ¡por 3!'][P.puntosJugados % 3]; }
+
+function finPunto(ganador, motivo, extra){
+  const yo = ganador === 0, oro = P.puntos[0] === 3 && P.puntos[1] === 3;
+  P.estado = 'punto'; P.timer = PAUSA_PUNTO; P.puntosJugados++;
+  P.stats.rallyMax = Math.max(P.stats.rallyMax, P.rally);
+  if(extra.porTres && yo) P.stats.porTres++;
+  if(oro){ P.stats.orosJ++; if(yo) P.stats.orosG++; }
+  P.puntos[ganador]++;
+  let sub = oro ? 'PUNTO DE ORO' : '';
+  if(P.momento && P.puntos[ganador] >= 4){
+    P.finMomento = ganador;
+    sub = yo ? '¡JUEGO Y PARTIDO!' : 'SE ESCAPA EL JUEGO';
+  } else if(P.puntos[ganador] >= 4){
+    P.juegos[ganador]++; P.puntos = [0, 0]; P.sacaLado = 1 - P.sacaLado;
+    sub = `JUEGO PARA ${yo ? 'VOSOTROS' : 'ELLOS'} · ${P.juegos[0]}-${P.juegos[1]}`;
+    if(P.juegos[ganador] >= JUEGOS_GANAR) sub = yo ? '¡PARTIDO!' : 'SE ACABÓ';
+  }
+  mostrarAviso(motivo, sub, yo ? '#DCF54A' : '#FF8A7A', PAUSA_PUNTO);
+  mostrarAyuda('');
+  Sonido.punto(yo); if(extra.porTres || oro) Sonido.grada();
+  Efectos.sacudir(extra.porTres ? 12 : 3);
+  if(yo && /Por|Dejada|Remate|Doble/.test(motivo)){ P.lento = .45; Efectos.confeti(); }
+  actualizarHUD();
+}
+function actualizar(dt){
+  if(!P || P.pausa || P.estado === 'fin') return;
+  P.t += dt; if(P.timer > 0) P.timer -= dt;
+  if(P.estado === 'punto'){
+    Input.golpe = Input.globo = false;
+    for(const j of P.jug){ j.vx *= .9; j.vy *= .9; aplicarMovimiento(j, dt); if(j.anim > 0) j.anim -= dt; }
+    if(P.timer <= 0){ if(P.momento && P.finMomento !== null) terminarMomento(); else if(Math.max(P.juegos[0], P.juegos[1]) >= JUEGOS_GANAR) terminarPartido(); else prepararSaque(); }
+  } else if(P.estado === 'saque'){
+    const s = P.jug[P.saqueDe];
+    if(s.humano && !P.humanoIA){ if(Input.golpe || Input.globo || P.timer <= 0){ Input.golpe = Input.globo = false; mostrarAyuda(''); sacar(s, .8 + .2*Math.random()); } }
+    else if(P.timer <= 0){ mostrarAyuda(''); sacar(s, clamp(s.hab + .15 + gauss()*.08, .3, 1)); }
+  } else {
+    for(const j of P.jug) (j.humano ? actualizarHumano : actualizarIA)(j, dt);
+    actualizarBola(dt);
+  }
+  Efectos.actualizar(dt);
+}
+function terminarPartido(){
+  P.estado = 'fin';
+  const gano = P.juegos[0] > P.juegos[1];
+  if(P.humanoIA) return;
+  if(P.puntosJugados >= 3){ PREF.tutorialVisto = true; guardarJSON(PREF_KEY, PREF); }
+  REC.partidos++; if(gano) REC.ganados++;
+  REC.porTres += P.stats.porTres; REC.oros += P.stats.orosG; REC.rallyMax = Math.max(REC.rallyMax, P.stats.rallyMax);
+  if(P.modo === 'torneo'){ TORNEO.resultados[P.nivel] = gano; if(gano && P.nivel === NIVELES.length - 1) REC.torneos++; }
+  guardarJSON(REC_KEY, REC);
+  pintarFinal(gano); mostrarPantalla('final');
+}
+
+function terminarMomento(){
+  P.estado = 'fin';
+  const gano = P.finMomento === 0, st = P.stats, prueba = P.humanoIA;
+  if(!prueba && !PREF.tutorialVisto && P.puntosJugados >= 2){ PREF.tutorialVisto = true; guardarJSON(PREF_KEY, PREF); }
+  P = null;
+  finMomentoEnVivo(gano, st);
+}
+function simularRestoMomento(){
+  if(!P || !P.momento) return salirAlMenu();
+  const M = P.momento, sc = P.puntos.slice(), pr = probPuntoMomento(M.gap), st = P.stats;
+  while(sc[0] < 4 && sc[1] < 4){ if(Math.random() < pr) sc[0]++; else sc[1]++; }
+  $('#pausa').hidden = true; P = null;
+  finMomentoEnVivo(sc[0] >= 4, st);
+}
+
+/* ── El bucle: física a 120 Hz, dibujo a lo que dé la pantalla ── */
+let ultimoTs = 0, acumulado = 0;
+function bucle(ts){
+  if(!P || $('#juego').hidden) return;
+  const dt = Math.min(.05, ultimoTs ? (ts - ultimoTs)/1000 : 0); ultimoTs = ts;
+  if(!P.pausa){ if(P.lento > 0) P.lento -= dt; acumulado += dt; while(P && acumulado >= 1/120){ actualizar(P.lento > 0 ? 1/120*.35 : 1/120); acumulado -= 1/120; } }
+  if(!P) return;
+  dibujar();
+  requestAnimationFrame(bucle);
+}
+function alternarPausa(){
+  if(!P || P.estado === 'fin' || $('#juego').hidden) return;
+  P.pausa = !P.pausa;
+  const caja = $('#pausa');
+  caja.hidden = !P.pausa;
+  if(P.pausa) caja.querySelector('.caja').innerHTML = `<div class="card"><div class="eyebrow">PAUSA</div><div class="titulo">${P.momento ? textoPuntos(P.puntos) : P.juegos[0] + ' – ' + P.juegos[1]}</div><p class="muted">${P.rival.pareja} · juegan a ${P.rival.juego}</p></div>
+    <button class="btn" onclick="alternarPausa()">SEGUIR</button>${P.momento ? '<button class="btn fantasma" onclick="simularRestoMomento()">⏩ SIMULAR EL RESTO</button>' : '<button class="btn fantasma" onclick="salirAlMenu()">SALIR AL MENÚ</button>'}`;
+}
+function salirAlMenu(){ if(P) P.pausa = false; P = null; $('#pausa').hidden = true; pintarMenu(); mostrarPantalla('menu'); }
+
+function mostrarPantalla(id){
+  if(!hayDOM) return;
+  for(const s of document.querySelectorAll('.pantalla')) s.hidden = s.id !== id;
+  if(id === 'juego'){ ajustarLienzo(); ultimoTs = 0; acumulado = 0; requestAnimationFrame(bucle); }
+}
+function interruptor(clave, titulo, desc){
+  return `<div class="linea"><div><b>${titulo}</b><br><span>${desc}</span></div><button class="tg ${PREF[clave]?'on':''}" onclick="PREF.${clave}=!PREF.${clave};guardarJSON(PREF_KEY,PREF);pintarMenu()" aria-pressed="${PREF[clave]}"><i></i></button></div>`;
+}
+function pintarMenu(){
+  $('#menu .caja').innerHTML = `
+    <div class="marca"><span class="pala"></span><b>LA CABRA</b><small>PÁDEL ARCADE</small></div>
+    <div class="card hero"><div class="eyebrow">CARRERA + PÁDEL EN TIEMPO REAL</div>
+      <div class="titulo">CADA BOLA<br>LA PEGAS TÚ</div>
+      <p class="sub">Haz tu carrera del FIP a los Majors y juega en la pista los juegos que deciden cada torneo. O échate un partido rápido a ${JUEGOS_GANAR} juegos.</p></div>
+    <button class="btn oro" onclick="abrirCarrera()">🏅 MODO CARRERA</button>
+    <button class="btn" onclick="iniciarPartido('rapido', 1)">⚡ PARTIDO RÁPIDO</button>
+    <button class="btn fantasma" onclick="empezarTorneo()">🏆 TORNEO RELÁMPAGO</button>
+    <button class="btn fantasma" onclick="pintarComo();mostrarPantalla('como')">CÓMO SE JUEGA</button>
+    <div class="card">${interruptor('asistencia','Asistencia','Tu jugador va solo hacia la bola si no lo mueves.')}${interruptor('sonido','Sonido','Golpes, cristal y grada.')}</div>
+    <div class="card"><div class="eyebrow">TUS RÉCORDS</div><div style="height:8px"></div><div class="stats">
+      <div class="stat"><span>Partidos ganados</span><b>${REC.ganados}/${REC.partidos}</b></div><div class="stat"><span>Torneos</span><b>${REC.torneos}</b></div>
+      <div class="stat"><span>Rally más largo</span><b>${REC.rallyMax}</b></div><div class="stat"><span>Por 3</span><b>${REC.porTres}</b></div></div></div>`;
+}
+function pintarComo(){
+  const tactil = !matchMedia('(hover:hover) and (pointer:fine)').matches;
+  $('#como .caja').innerHTML = `<div class="marca"><span class="pala"></span><b>LA CABRA</b><small>CÓMO SE JUEGA</small></div>
+    <div class="card">
+      <div class="paso"><span class="ic">🕹️</span><div><b>Muévete</b><span>${tactil ? 'Con el joystick de la izquierda.' : 'Con <kbd>WASD</kbd> o las flechas.'} Juegas en el lado izquierdo; tu pareja cubre el derecho.</span></div></div>
+      <div class="paso"><span class="ic">🎾</span><div><b>Pega en el momento justo</b><span>Cuando la bola entra en tu anillo amarillo, ${tactil ? 'pulsa GOLPE' : 'pulsa <kbd>Espacio</kbd>'}. Cuanto mejor el momento, mejor sale. Mueve el ${tactil ? 'joystick' : 'teclado'} a un lado para apuntar.</span></div></div>
+      <div class="paso"><span class="ic">☂️</span><div><b>Globo</b><span>${tactil ? 'El botón azul' : '<kbd>K</kbd>'} la manda alta al fondo: perfecto cuando los rivales están en la red.</span></div></div>
+      <div class="paso"><span class="ic">💥</span><div><b>Remate</b><span>Si la bola te llega alta cerca de la red, el golpe sale solo como remate. Si es perfecto, bota y puede salir por encima del cristal: <b>¡por 3!</b></span></div></div>
+      <div class="paso"><span class="ic">🧱</span><div><b>Las reglas del cristal</b><span>La bola tiene que botar en el suelo antes de tocar la pared. Después del bote, el cristal está en juego: espera el rebote y pega.</span></div></div>
+      <div class="paso"><span class="ic">🥇</span><div><b>Punto de oro</b><span>A 40-40 no hay ventajas: un punto y se acaba el juego. Gana quien llegue a ${JUEGOS_GANAR} juegos.</span></div></div>
+    </div>
+    <button class="btn" onclick="iniciarPartido('rapido', 1)">JUGAR</button><button class="btn fantasma" onclick="pintarMenu();mostrarPantalla('menu')">VOLVER</button>`;
+}
+function empezarTorneo(){ TORNEO = { resultados:[] }; iniciarPartido('torneo', 0); }
+function pintarFinal(gano){
+  const s = P.stats, N = P.rival, torneo = P.modo === 'torneo';
+  const campeon = torneo && gano && P.nivel === NIVELES.length - 1;
+  const cuadro = torneo ? `<div class="cuadro">${NIVELES.map((n,i)=>`<i class="${TORNEO.resultados[i] === true ? 'ok' : TORNEO.resultados[i] === false ? 'ko' : i === P.nivel+1 && gano ? 'ahora' : ''}"></i>`).join('')}</div>
+    <p class="muted" style="margin:6px 0 0">${NIVELES.map(n=>n.ronda).join(' → ')}</p>` : '';
+  let botones;
+  if(campeon) botones = `<button class="btn oro" onclick="pintarMenu();mostrarPantalla('menu')">🏆 VOLVER AL MENÚ</button>`;
+  else if(torneo && gano) botones = `<button class="btn" onclick="iniciarPartido('torneo', ${P.nivel + 1})">JUGAR LA ${NIVELES[P.nivel + 1].ronda}</button><button class="btn fantasma" onclick="pintarMenu();mostrarPantalla('menu')">MENÚ</button>`;
+  else botones = `<button class="btn" onclick="iniciarPartido('${P.modo}', ${P.nivel})">${torneo ? 'REPETIR LA ' + N.ronda : 'REVANCHA'}</button><button class="btn fantasma" onclick="pintarMenu();mostrarPantalla('menu')">MENÚ</button>`;
+  $('#final .caja').innerHTML = `<div class="marca"><span class="pala"></span><b>LA CABRA</b><small>PÁDEL ARCADE</small></div>
+    <div class="card ${gano ? 'oro' : ''}"><div class="eyebrow">${torneo ? N.ronda + ' · ' : ''}CONTRA ${N.pareja.toUpperCase()}</div>
+      <div class="titulo">${campeon ? '🏆 ¡CAMPEONES!' : gano ? '✅ ¡GANASTEIS!' : '😖 PERDISTEIS'}</div>
+      <p class="sub">${P.juegos[0]} – ${P.juegos[1]} en juegos${s.orosJ ? ` · ${s.orosG}/${s.orosJ} puntos de oro` : ''}</p>${cuadro}</div>
+    <div class="card"><div class="stats">
+      <div class="stat"><span>Tus golpes</span><b>${s.golpes}</b></div><div class="stat"><span>Rally más largo</span><b>${s.rallyMax}</b></div>
+      <div class="stat"><span>Globos</span><b>${s.globos}</b></div><div class="stat"><span>Remates</span><b>${s.remates}</b></div>
+      <div class="stat"><span>Por 3</span><b>${s.porTres}</b></div><div class="stat"><span>Puntos de oro</span><b>${s.orosG}/${s.orosJ}</b></div></div></div>
+    ${botones}`;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   MODO CARRERA
+   La carrera se simula rápido: cuatro torneos por temporada y un toque por
+   ronda. Pero los juegos que deciden algo —la semifinal, la final, una bola
+   de partido en contra— se juegan EN VIVO en la pista, o se simulan si tienes
+   prisa. Lo que mejoras en la carrera cambia cómo se mueve y pega tu jugador.
+   ═══════════════════════════════════════════════════════════════ */
+const CARRERA_KEY = 'cabra_carrera_arcade_v1';
+let CR = null;
+
+const STATS = {
+  vel:      {nom:'Velocidad', ic:'👟', d:'Llegas antes a la bola.'},
+  alcance:  {nom:'Alcance',   ic:'🖐️', d:'Tu anillo de golpeo es más grande.'},
+  potencia: {nom:'Potencia',  ic:'💥', d:'Golpes más rápidos y más remates por 3.'},
+  precision:{nom:'Precisión', ic:'🎯', d:'Fallas menos y la bola va donde apuntas.'},
+};
+const STAT_MAX = 10;
+const CIRCUITO = {
+  FIP1:{nom:'FIP PROMISES', etq:'PROMISES', nivel:0,    rondas:3, acc:9999, pts:[40,24,12,0]},
+  FIP2:{nom:'FIP RISE',     etq:'RISE',     nivel:1.2,  rondas:3, acc:1400, pts:[70,42,21,0]},
+  FIP3:{nom:'FIP STAR',     etq:'STAR',     nivel:2.5,  rondas:3, acc:800,  pts:[120,72,36,0]},
+  FIP4:{nom:'FIP GOLD',     etq:'GOLD',     nivel:3.8,  rondas:3, acc:500,  pts:[200,120,60,0]},
+  FIP5:{nom:'FIP PLATINUM', etq:'PLATINUM', nivel:5,    rondas:3, acc:320,  pts:[320,190,95,0]},
+  P2:  {nom:'PREMIER P2',   etq:'P2',       nivel:6.5,  rondas:3, acc:180,  pts:[500,300,150,0]},
+  P1:  {nom:'PREMIER P1',   etq:'P1',       nivel:8.5,  rondas:4, acc:90,   pts:[900,540,270,120,0]},
+  MJ:  {nom:'MAJOR',        etq:'MAJOR',    nivel:10.5, rondas:4, acc:45,   pts:[1800,1080,540,240,0]},
+};
+const ORDEN_C = Object.keys(CIRCUITO);
+const RONDAS_C = {3:['CUARTOS','SEMIFINAL','FINAL'], 4:['OCTAVOS','CUARTOS','SEMIFINAL','FINAL']};
+const SEDES_C = ['Madrid','Málaga','Valencia','Sevilla','Buenos Aires','Mar del Plata','Santiago','Asunción','Montevideo','Monterrey','Bruselas','Milán','Doha','Riad','Dubái','Miami','Lisboa','Bogotá','Lima','Vigo'];
+const MAJORS_C = [['Qatar Major','Doha'],['Italy Major','Roma'],['Roland Garros Major','París'],['Mexico Major','Acapulco']];
+const TABLA_RK_C = [[6000,1],[4800,2],[4000,3],[3400,4],[2900,6],[2400,8],[2000,10],[1500,15],[1200,20],[900,30],
+  [700,45],[520,60],[400,80],[300,100],[220,140],[160,190],[110,260],[75,350],[50,480],[30,650],[15,900],[5,1300],[1,1800]];
+const PAISES_C = [['AR','ARG','Argentina'],['BO','BOL','Bolivia'],['CL','CHI','Chile'],['CO','COL','Colombia'],['CR','CRC','Costa Rica'],['CU','CUB','Cuba'],
+  ['EC','ECU','Ecuador'],['SV','ESA','El Salvador'],['ES','ESP','España'],['GQ','GEQ','Guinea Ecuatorial'],['GT','GUA','Guatemala'],['HN','HON','Honduras'],
+  ['MX','MEX','México'],['NI','NCA','Nicaragua'],['PA','PAN','Panamá'],['PY','PAR','Paraguay'],['PE','PER','Perú'],['PR','PUR','Puerto Rico'],
+  ['DO','DOM','República Dominicana'],['UY','URU','Uruguay'],['VE','VEN','Venezuela']];
+const NOM_M = ['Juan','Agustín','Martín','Franco','Álex','Javi','Nico','Lucas','Gonzalo','Maxi','Fede','Iván','Rubén','Aitor','Pablo','Marc','Tiago','Santi','Diego','Julián'];
+const NOM_F = ['Ariana','Paula','Bea','Marta','Alejandra','Delfi','Gemma','Claudia','Lucía','Sofía','Tamara','Vero','Martina','Julieta','Nuria','Andrea','Sara','Carla','Noa','Camila'];
+const APELLIDOS = ['González','Fernández','Ruiz','Díaz','Romero','Navarro','Torres','Ramos','Molina','Castro','Ortega','Iglesias','Belluati','Corbalán','Lombardi','Costa','Brea','Ibarra','Quiroga','Sosa'];
+const ESTILOS_RIVAL = [
+  {nom:'globo y paciencia', agresivo:.3,  globeador:.55}, {nom:'potencia y remate', agresivo:.75, globeador:.25},
+  {nom:'todo a la red',     agresivo:.6,  globeador:.35}, {nom:'oficio y colocación', agresivo:.45, globeador:.45},
+];
+function nombreC(gen){ return pick(gen === 'F' ? NOM_F : NOM_M) + ' ' + pick(APELLIDOS); }
+function rankDePuntosC(p){
+  if(!p || p < 1) return null;
+  if(p >= TABLA_RK_C[0][0]) return 1;
+  for(let i = 0; i < TABLA_RK_C.length-1; i++){
+    const [p1,r1] = TABLA_RK_C[i], [p2,r2] = TABLA_RK_C[i+1];
+    if(p <= p1 && p >= p2){ const t = (Math.log(p)-Math.log(p2))/(Math.log(p1)-Math.log(p2)); return Math.max(1, Math.round(r2 + t*(r1-r2))); }
+  }
+  return 1800;
+}
+
+/* ── Tu nivel y lo que cambia en la pista ── */
+function mediaStats(j){ const s = j.stats; return (s.vel + s.alcance + s.potencia + s.precision) / 4; }
+function nivelCarrera(j){
+  const stats = (mediaStats(j) - 1) * 1.06;
+  const pareja = j.pareja ? j.pareja.estrellas*.36 + j.pareja.quimica/185 : 0;
+  const edad = j.edad <= 30 ? 0 : -(j.edad - 30)*.35;
+  return { total: .3 + stats + pareja + edad, stats, pareja, edad };
+}
+function paramsHumano(j){
+  const s = j.stats;
+  return { vel: 4.4 + s.vel*.14, alcance: 1.14 + s.alcance*.036, multT: 1.08 - s.potencia*.02, bonusCal: s.precision*.012,
+           multFallo: 1.1 - s.precision*.05, umbralPorTres: .86 - s.potencia*.015 };
+}
+function paramsPareja(j){ const e = j.pareja ? j.pareja.estrellas : 2; return { hab:.45 + e*.07, vel:4 + e*.2, alcance:1.1 + e*.02, reaccion:.26 - e*.02 }; }
+function rivalDe(tier, ronda){
+  const r = CR.j.ranking || 9999;
+  const nivel = CIRCUITO[tier].nivel + ronda*.25 + (r <= 3 ? .95 : r <= 10 ? .6 : r <= 25 ? .3 : 0);
+  const est = pick(ESTILOS_RIVAL);
+  return { nombre:nombreC(CR.j.genero), nombre2:nombreC(CR.j.genero), juego:est.nom, nivel,
+           hab: clamp(.38 + nivel*.035, .38, .82), vel: 3.8 + nivel*.11, reaccion: clamp(.3 - nivel*.015, .12, .3),
+           agresivo:est.agresivo, globeador:est.globeador };
+}
+
+/* ── Crear la carrera, pareja y temporada ── */
+function nuevaCarrera(cfg){
+  const p = PAISES_C.find(x=>x[0]===cfg.pais) || PAISES_C[8];
+  CR = { pantalla:'pareja', torneo:null, momento:null, finT:null, finTemp:null, candidatos:null,
+    j:{ nombre:cfg.nombre, genero:cfg.genero, pais:p[0], cod:p[1], lado:cfg.lado, edad:18, temporadaN:1, trimestre:0,
+        stats:{vel:1, alcance:1, potencia:1, precision:1}, puntosMejora:2, pareja:null, puntosHist:[], ranking:null, mejorRank:null,
+        titulos:[], pg:0, pp:0, momentosJ:0, momentosG:0, enVivo:0, retirado:false } };
+  CR.candidatos = candidatosParejaC(CR.j);
+  guardarCarrera();
+}
+function candidatosParejaC(j){
+  const r = j.ranking || 9999, base = r <= 5 ? 5 : r <= 25 ? 4 : r <= 100 ? 3 : r <= 400 ? 2 : 1;
+  return [base, Math.min(5, base+1), Math.max(1, base-1)].map(e => ({ nombre:nombreC(j.genero), estrellas:e, quimica: e > base ? 10 : 30, temporadas:0 }));
+}
+function elegirParejaC(i){
+  const j = CR.j;
+  if(i === 'mantener'){ j.pareja.temporadas++; j.pareja.quimica = clamp(j.pareja.quimica + 10, 0, 100); }
+  else j.pareja = CR.candidatos[i];
+  CR.candidatos = null; j.trimestre = 0;
+  CR.opciones = opcionesTrimestreC(); CR.pantalla = 'temporada';
+  guardarCarrera(); pintarCarrera();
+}
+function opcionesTrimestreC(){
+  const r = CR.j.ranking || 99999, acc = ORDEN_C.filter(t => t === 'FIP1' || CIRCUITO[t].acc >= r);
+  const nivel = acc[acc.length-1], i = ORDEN_C.indexOf(nivel);
+  const op = (t, etq, wc) => { const mj = t === 'MJ' ? pick(MAJORS_C) : null, ciudad = mj ? mj[1] : pick(SEDES_C);
+    return { tier:t, etiqueta:etq, wildcard:!!wc, nom: mj ? mj[0] : `${CIRCUITO[t].nom} de ${ciudad}` }; };
+  const out = [];
+  if(i > 0) out.push(op(ORDEN_C[i-1], 'PARA SUMAR CONFIANZA'));
+  out.push(op(nivel, 'A TU NIVEL'));
+  if(i < ORDEN_C.length-1) out.push(op(ORDEN_C[i+1], 'CON INVITACIÓN · MÁS DURO', true));
+  return out;
+}
+
+/* ── Torneo: rondas simuladas y juegos decisivos ── */
+function elegirTorneoC(i){
+  const op = CR.opciones[i]; if(!op) return;
+  const T = CIRCUITO[op.tier];
+  CR.torneo = { tier:op.tier, nom:op.nom, wildcard:op.wildcard, rondas:T.rondas, ronda:0, partidos:[], campeon:false, eliminado:false, rescate:false };
+  CR.pantalla = 'torneo'; guardarCarrera(); pintarCarrera();
+}
+const logistica = x => 1/(1+Math.exp(-x));
+const probPuntoMomento = gap => logistica(gap/1.75 + .15);
+function marcadorC(gano, apretado){
+  const set = (g, a) => { const s = a ? pick(['7-5','7-6','6-4']) : pick(['6-2','6-3','6-4']); return g ? s : s.split('-').reverse().join('-'); };
+  return apretado ? [set(gano,true), set(!gano,true), set(gano,true)].join('  ') : [set(gano,false), set(gano,true)].join('  ');
+}
+function avanzarTorneoC(){
+  const TO = CR.torneo, j = CR.j;
+  while(TO.ronda < TO.rondas){
+    const R = rivalDe(TO.tier, TO.ronda), gap = nivelCarrera(j).total - R.nivel;
+    const tipo = TO.ronda === TO.rondas-1 ? 'final' : TO.ronda === TO.rondas-2 ? 'semifinal' : null;
+    if(tipo) return abrirMomentoC(tipo, R);
+    const gano = Math.random() < logistica(gap/1.4);
+    if(!gano && !TO.rescate){ TO.rescate = true; return abrirMomentoC('rescate', R); }
+    registrarPartidoC(R, gano, marcadorC(gano, Math.abs(gap) < 1.2), false);
+    if(!gano){ TO.eliminado = true; return finTorneoC(); }
+    TO.ronda++;
+  }
+}
+const MOMENTOS = {
+  semifinal:{titulo:'BOLA DE PARTIDO',           sit:'Semifinal. Sacáis para meteros en la final.',                          saca:0},
+  final:    {titulo:'EL JUEGO DEL TÍTULO',       sit:'Final. Último juego: quien lo gane se lleva el torneo.',               saca:null},
+  rescate:  {titulo:'BOLA DE PARTIDO EN CONTRA', sit:'Os tienen contra las cuerdas. Si ganáis este juego, lo dais vuelta.', saca:1},
+};
+/* Cuanto mejor seas que ellos, con más ventaja empiezas el juego decisivo */
+function inicioSegunGap(tipo, gap){
+  if(tipo === 'rescate') return gap >= 0 ? [2,3] : [1,3];
+  return gap >= 2 ? [3,0] : gap >= 1 ? [3,1] : gap >= 0 ? [2,1] : gap >= -1 ? [2,2] : gap >= -2 ? [1,2] : [1,3];
+}
+function textoPuntos(p){ const n = ['0','15','30','40']; return p[0] === 3 && p[1] === 3 ? '40-40 · punto de oro' : `${n[Math.min(3,p[0])]}-${n[Math.min(3,p[1])]}`; }
+function abrirMomentoC(tipo, R){
+  const gap = nivelCarrera(CR.j).total - R.nivel, M = MOMENTOS[tipo];
+  /* En la pista importa lo lejos que estáis de ellos: un juego parejo se juega contra rivales de nivel medio */
+  Object.assign(R, { hab:clamp(.5 - gap*.04, .35, .72), vel:clamp(4.1 - gap*.1, 3.6, 5), reaccion:clamp(.23 + gap*.018, .13, .32) });
+  CR.momento = { tipo, rival:R, gap, inicio:inicioSegunGap(tipo, gap), saca: M.saca == null ? (Math.random() < .5 ? 0 : 1) : M.saca, resultado:null };
+  CR.pantalla = 'momento'; guardarCarrera();
+  if(hayDOM){ mostrarPantalla('carrera'); pintarCarrera(); }
+}
+function simularMomentoC(){
+  const M = CR.momento; if(M.resultado) return;
+  const p = probPuntoMomento(M.gap), s = M.inicio.slice();
+  while(s[0] < 4 && s[1] < 4){ if(Math.random() < p) s[0]++; else s[1]++; }
+  M.resultado = { gano: s[0] >= 4, enVivo:false };
+  CR.j.momentosJ++; if(M.resultado.gano) CR.j.momentosG++;
+  guardarCarrera(); pintarCarrera();
+}
+function jugarMomentoEnVivo(){
+  const M = CR.momento, j = CR.j;
+  iniciarPartido('momento', null, { momento:M, humano:paramsHumano(j), pareja:paramsPareja(j), rival:M.rival, carril: j.lado === 'drive' ? 'der' : 'izq' });
+}
+/* Lo llama la pista cuando se acaba el juego decisivo */
+function finMomentoEnVivo(gano, st){
+  const M = CR.momento, j = CR.j;
+  M.resultado = { gano, enVivo:true, porTres:st.porTres, rally:st.rallyMax, golpes:st.golpes };
+  j.momentosJ++; if(gano) j.momentosG++; j.enVivo++;
+  CR.pantalla = 'momento'; guardarCarrera();
+  if(hayDOM){ mostrarPantalla('carrera'); pintarCarrera(); }
+}
+function trasMomentoC(){
+  const M = CR.momento, TO = CR.torneo, gano = M.resultado.gano;
+  registrarPartidoC(M.rival, gano, marcadorC(gano, true), true);
+  CR.momento = null;
+  if(!gano){ TO.eliminado = true; return finTorneoC(); }
+  TO.ronda++;
+  if(TO.ronda >= TO.rondas){ TO.campeon = true; return finTorneoC(); }
+  CR.pantalla = 'torneo'; guardarCarrera(); pintarCarrera();
+}
+function registrarPartidoC(R, gano, marc, clave){
+  const j = CR.j, TO = CR.torneo;
+  TO.partidos.push({ ronda:RONDAS_C[TO.rondas][TO.ronda], rival:R, gano, marcador:marc, clave });
+  if(gano) j.pg++; else j.pp++;
+  if(j.pareja) j.pareja.quimica = clamp(j.pareja.quimica + (gano ? 3 : -2), 0, 100);
+}
+function finTorneoC(){
+  const j = CR.j, TO = CR.torneo, T = CIRCUITO[TO.tier];
+  const idx = TO.campeon ? 0 : (T.rondas - TO.ronda);
+  const pts = T.pts[Math.min(idx, T.pts.length-1)] || 0, antes = j.ranking;
+  j.puntosHist.push(pts); if(j.puntosHist.length > 8) j.puntosHist.shift();
+  j.ranking = rankDePuntosC(j.puntosHist.reduce((a,x)=>a+x, 0));
+  if(j.ranking && (!j.mejorRank || j.ranking < j.mejorRank)) j.mejorRank = j.ranking;
+  if(TO.campeon) j.titulos.push({ nom:TO.nom, tier:TO.tier, t:j.temporadaN, edad:j.edad });
+  j.puntosMejora += TO.campeon ? 2 : 1;
+  CR.finT = { pts, antes, campeon:TO.campeon, ronda: TO.campeon ? (j.genero === 'F' ? 'CAMPEONA' : 'CAMPEÓN') : idx===1 ? 'FINALISTA' : idx===2 ? 'SEMIFINAL' : idx===3 ? 'CUARTOS' : 'OCTAVOS' };
+  CR.pantalla = 'finTorneo'; guardarCarrera();
+  if(hayDOM){ mostrarPantalla('carrera'); pintarCarrera(); }
+}
+function mejorarStatC(k){ const j = CR.j; if(j.puntosMejora <= 0 || j.stats[k] >= STAT_MAX) return; j.stats[k]++; j.puntosMejora--; guardarCarrera(); pintarCarrera(); }
+function statsAlMaximo(j){ return Object.values(j.stats).every(v => v >= STAT_MAX); }
+function siguienteTrimestreC(){
+  const j = CR.j; CR.torneo = null; CR.finT = null; j.trimestre++;
+  if(j.trimestre >= 4){ CR.finTemp = { n:j.temporadaN, rank:j.ranking, titulos:j.titulos.filter(t=>t.t===j.temporadaN).length }; CR.pantalla = 'finTemporada'; }
+  else { CR.opciones = opcionesTrimestreC(); CR.pantalla = 'temporada'; }
+  guardarCarrera(); pintarCarrera();
+}
+function siguienteTemporadaC(){
+  const j = CR.j; j.edad++; j.temporadaN++; j.trimestre = 0; CR.finTemp = null; CR.aviso = null;
+  if(j.edad >= 36) return retirarseC();
+  if(j.edad >= 31){ const ks = Object.keys(j.stats).filter(k => j.stats[k] > 1); if(ks.length){ const k = pick(ks); j.stats[k]--; CR.aviso = `⏳ ${j.edad} años: el cuerpo cobra, −1 de ${STATS[k].nom.toLowerCase()}.`; } }
+  j.puntosMejora += 1;
+  CR.candidatos = candidatosParejaC(j); CR.pantalla = 'pareja'; guardarCarrera(); pintarCarrera();
+}
+function legadoC(j){
+  const n = t => j.titulos.filter(x=>x.tier===t).length, b = j.mejorRank || 9999;
+  let p = n('MJ')*40 + n('P1')*15 + n('P2')*6 + j.titulos.length*2;
+  p += b<=1?60 : b<=5?40 : b<=10?28 : b<=25?18 : b<=60?10 : b<=150?5 : b<=400?2 : 0;
+  const R = p>=900?['LA CABRA 🐐','Cuando se hable del mejor de la historia, se dirá tu nombre.'] : p>=450?['LEYENDA','Una de las grandes carreras del pádel.']
+          : p>=200?['ENORME CARRERA','Estuviste arriba de verdad y ganaste cosas grandes.'] : p>=70?['CARRERA SÓLIDA','Viviste del pádel y levantaste trofeos.']
+          : p>=15?['PROFESIONAL','Fuiste profesional: muy poca gente llega.'] : ['LO INTENTASTE','No cuajó, pero estuviste ahí.'];
+  return {p, rango:R[0], txt:R[1]};
+}
+function retirarseC(){ CR.j.retirado = true; CR.legado = legadoC(CR.j); CR.pantalla = 'retiro'; guardarCarrera(); pintarCarrera(); }
+function guardarCarrera(){ try{ localStorage.setItem(CARRERA_KEY, JSON.stringify(CR)); }catch(e){} }
+function cargarCarrera(){ try{ const r = localStorage.getItem(CARRERA_KEY); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
+function borrarCarrera(){ try{ localStorage.removeItem(CARRERA_KEY); }catch(e){} CR = { pantalla:'crear' }; }
+function abrirCarrera(){
+  const d = cargarCarrera();
+  CR = (d && d.j && !d.j.retirado) ? d : { pantalla:'crear' };
+  mostrarPantalla('carrera'); pintarCarrera();
+}
+
+/* ── Pantallas del modo carrera ── */
+let CFGC = { nombre:'', genero:'M', pais:'ES', lado:'reves', error:null };
+const VISTAS_C = { crear:vCrearC, pareja:vParejaC, temporada:vTemporadaC, torneo:vTorneoC, momento:vMomentoC, finTorneo:vFinTorneoC, finTemporada:vFinTemporadaC, retiro:vRetiroC };
+function pintarCarrera(){
+  if(!hayDOM || !CR) return;
+  $('#carrera .caja').innerHTML = cabeceraC() + (VISTAS_C[CR.pantalla] || vCrearC)();
+  $('#carrera').scrollTop = 0;
+}
+function cabeceraC(){
+  const j = CR.j;
+  return `<div class="marca" style="justify-content:space-between"><button class="btn fantasma" style="width:auto;margin:0;padding:7px 11px;font-size:12px" onclick="pintarMenu();mostrarPantalla('menu')">← MENÚ</button>
+    <span style="display:flex;align-items:center;gap:8px"><span class="pala"></span><b>LA CABRA</b><small>CARRERA</small></span><span style="width:62px"></span></div>
+    ${j ? `<div class="stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:11px">
+      <div class="stat"><span>Ranking</span><b>${j.ranking ? '#'+j.ranking : '—'}</b></div><div class="stat"><span>Nivel</span><b style="color:var(--acento)">${nivelCarrera(j).total.toFixed(1)}</b></div>
+      <div class="stat"><span>Edad</span><b>${j.edad}</b></div><div class="stat"><span>Títulos</span><b>${j.titulos.length}</b></div></div>` : ''}`;
+}
+function barraStatC(k, boton){
+  const j = CR.j, v = j.stats[k], S0 = STATS[k];
+  return `<div class="linea"><div style="min-width:0;flex:1"><b>${S0.ic} ${S0.nom} · ${v}</b><br><span>${S0.d}</span>
+    <div class="cuadro">${Array.from({length:STAT_MAX}, (_, i) => `<i class="${i < v ? 'ok' : ''}"></i>`).join('')}</div></div>
+    ${boton ? `<button class="btn" style="width:auto;margin:0;padding:10px 14px" ${j.puntosMejora > 0 && v < STAT_MAX ? `onclick="mejorarStatC('${k}')"` : 'disabled'}>+1</button>` : ''}</div>`;
+}
+function vCrearC(){
+  return `<div class="card hero"><div class="eyebrow">MODO CARRERA</div><div class="titulo">DEL FIP<br>A LOS MAJORS</div>
+    <p class="sub">Tu carrera se simula rápido. Los juegos que deciden algo los puedes <b>jugar en la pista</b> o simular. Lo que mejoras cambia cómo se mueve y pega tu jugador.</p></div>
+  <div class="card"><div class="eyebrow">TU JUGADOR</div>
+    <div class="fila" style="margin-top:9px"><button class="btn ${CFGC.genero==='M'?'':'fantasma'}" onclick="CFGC.genero='M';pintarCarrera()">MASCULINO</button><button class="btn ${CFGC.genero==='F'?'':'fantasma'}" onclick="CFGC.genero='F';pintarCarrera()">FEMENINO</button></div>
+    <input id="fnomC" maxlength="22" placeholder="Tu nombre" value="${CFGC.nombre}" oninput="CFGC.nombre=this.value" style="width:100%;padding:13px;border-radius:11px;border:1px solid var(--borde);background:var(--card2);color:var(--txt);font:inherit;font-size:15px;margin-bottom:9px">
+    ${CFGC.error ? `<p style="color:var(--mal);font-weight:800;font-size:13px;margin:0 0 8px">${CFGC.error}</p>` : ''}
+    <select onchange="CFGC.pais=this.value" style="width:100%;padding:13px;border-radius:11px;border:1px solid var(--borde);background:var(--card2);color:var(--txt);font:inherit;font-size:15px;margin-bottom:9px">${PAISES_C.slice().sort((a,b)=>a[2].localeCompare(b[2])).map(p=>`<option value="${p[0]}" ${p[0]===CFGC.pais?'selected':''}>${p[2]}</option>`).join('')}</select>
+    <div class="fila"><button class="btn ${CFGC.lado==='reves'?'':'fantasma'}" onclick="CFGC.lado='reves';pintarCarrera()">⬅️ REVÉS</button><button class="btn ${CFGC.lado==='drive'?'':'fantasma'}" onclick="CFGC.lado='drive';pintarCarrera()">DRIVE ➡️</button></div>
+    <p class="muted" style="margin:2px 0 0">${CFGC.lado==='reves' ? 'Jugarás en el lado izquierdo de la pista.' : 'Jugarás en el lado derecho de la pista.'}</p></div>
+  <button class="btn" onclick="crearCarreraC()">EMPEZAR LA CARRERA</button>`;
+}
+function crearCarreraC(){
+  const inp = $('#fnomC'), n = ((inp ? inp.value : CFGC.nombre) || '').trim();
+  if(n.length < 2){ CFGC.error = 'Escribe tu nombre.'; return pintarCarrera(); }
+  CFGC.nombre = n; CFGC.error = null; nuevaCarrera(CFGC); pintarCarrera();
+}
+function vParejaC(){
+  const j = CR.j, e = n => '★'.repeat(n) + '☆'.repeat(5-n);
+  const fila = (p, onclick, etq) => `<button class="btn fantasma" style="text-align:left;padding:12px 14px" onclick="${onclick}">
+    <b>${p.nombre}</b> ${etq ? `<span style="color:var(--oro);font-size:11px;letter-spacing:.1em">· ${etq}</span>` : ''}<br>
+    <span style="font-weight:600;letter-spacing:0;color:var(--txt2)">${e(p.estrellas)} · química ${p.quimica}</span></button>`;
+  return `${CR.aviso ? `<div class="card" style="border-color:rgba(255,107,107,.4)">${CR.aviso}</div>` : ''}
+  <div class="card"><div class="eyebrow">TEMPORADA ${j.temporadaN}</div><div class="titulo" style="font-size:24px">¿Con quién juegas?</div>
+    <p class="sub">Las estrellas deciden cómo juega tu compañer${j.genero==='F'?'a':'o'} en la pista. La química sube ganando juntos.</p></div>
+  ${j.pareja ? fila(j.pareja, "elegirParejaC('mantener')", 'SEGUIR JUNTOS · +10 QUÍMICA') : ''}
+  ${CR.candidatos.map((p,i) => fila(p, `elegirParejaC(${i})`)).join('')}
+  ${j.puntosMejora > 0 ? `<div class="card" style="margin-top:6px"><div class="eyebrow">MEJORAS PENDIENTES · ${j.puntosMejora}</div>${Object.keys(STATS).map(k=>barraStatC(k, true)).join('')}</div>` : ''}`;
+}
+function vTemporadaC(){
+  const j = CR.j, N = nivelCarrera(j), T = ['Enero · Marzo','Abril · Junio','Julio · Septiembre','Octubre · Diciembre'][j.trimestre];
+  return `<div class="card"><div class="eyebrow">TEMPORADA ${j.temporadaN} · ${j.edad} AÑOS</div><div class="titulo" style="font-size:24px">${T}</div>
+    <div class="cuadro">${[0,1,2,3].map(i=>`<i class="${i<j.trimestre?'ok':i===j.trimestre?'ahora':''}"></i>`).join('')}</div>
+    <p class="muted" style="margin:8px 0 0">Pareja: <b style="color:var(--txt)">${j.pareja.nombre}</b> ${'★'.repeat(j.pareja.estrellas)} · química ${j.pareja.quimica}</p></div>
+  <div class="card"><div class="eyebrow">¿QUÉ TORNEO JUGÁIS?</div><div style="height:6px"></div>
+    ${CR.opciones.map((op,i) => { const C0 = CIRCUITO[op.tier], gap = N.total - (C0.nivel + .4);
+      const dif = gap >= 1.5 ? ['var(--acento)','Asequible'] : gap >= -.5 ? ['var(--oro)','Parejo'] : ['var(--mal)','Muy duro'];
+      return `<button class="btn fantasma" style="text-align:left;padding:12px 14px" onclick="elegirTorneoC(${i})">${op.tier==='MJ'?'🏛️':'🎾'} ${op.nom}<br>
+        <span style="font-weight:700;letter-spacing:.02em;font-size:12.5px;color:${op.wildcard?'var(--oro)':'var(--txt2)'}">${op.etiqueta}</span>
+        <span style="font-weight:700;font-size:12.5px;color:${dif[0]}"> · ${dif[1]}</span><span style="font-weight:600;font-size:12.5px;color:var(--mute)"> · campeón +${C0.pts[0]}</span></button>`; }).join('')}</div>
+  <div class="card"><div class="eyebrow">TU JUGADOR EN LA PISTA</div>${Object.keys(STATS).map(k=>barraStatC(k, j.puntosMejora > 0)).join('')}
+    ${j.puntosMejora > 0 ? `<p class="muted" style="margin:6px 0 0">Tienes <b>${j.puntosMejora}</b> mejora${j.puntosMejora>1?'s':''} para repartir.</p>` : ''}</div>`;
+}
+function vTorneoC(){
+  const TO = CR.torneo, sig = RONDAS_C[TO.rondas][TO.ronda];
+  const clave = TO.ronda >= TO.rondas-2;
+  return `<div class="card hero"><div class="eyebrow">${CIRCUITO[TO.tier].nom}${TO.wildcard?' · INVITACIÓN':''}</div><div class="titulo" style="font-size:24px">${TO.nom}</div>
+    <div class="cuadro">${RONDAS_C[TO.rondas].map((r,i)=>`<i class="${i<TO.ronda?'ok':i===TO.ronda?'ahora':''}"></i>`).join('')}</div>
+    <p class="muted" style="margin:6px 0 0">${RONDAS_C[TO.rondas].join(' → ')}</p></div>
+  ${TO.partidos.length ? `<div class="card">${TO.partidos.map(p=>`<div class="linea"><b>${p.gano?'✅':'❌'} ${p.ronda}${p.clave?' · 🎾':''}</b><span>${p.marcador}</span></div>`).join('')}</div>` : ''}
+  <button class="btn" onclick="avanzarTorneoC()">${TO.partidos.length ? 'SEGUIR · ' + sig : 'JUGAR EL TORNEO'}</button>
+  <p class="muted" style="text-align:center">${clave ? 'Este partido se decide en un juego que puedes jugar tú.' : 'Las primeras rondas se simulan. Si una se tuerce, tendrás un juego para salvarla.'}</p>`;
+}
+function vMomentoC(){
+  const M = CR.momento, R = M.rival, T = MOMENTOS[M.tipo], TO = CR.torneo;
+  if(M.resultado){
+    const r = M.resultado, gana = r.gano;
+    const txt = gana ? {semifinal:'¡A la final!', final: CR.j.genero==='F' ? '¡CAMPEONAS!' : '¡CAMPEONES!', rescate:'¡Lo dais vuelta!'}[M.tipo] : {semifinal:'Se escapa la semifinal', final:'Finalistas', rescate:'Fuera del torneo'}[M.tipo];
+    return `<div class="card ${gana?'oro':''}"><div class="eyebrow">${T.titulo} · ${r.enVivo ? 'JUGADO EN LA PISTA' : 'SIMULADO'}</div>
+      <div class="titulo">${gana?'✅':'❌'} ${txt}</div>
+      ${r.enVivo ? `<p class="sub">${r.golpes} golpes tuyos · rally más largo ${r.rally}${r.porTres?` · ${r.porTres} por 3`:''}</p>` : ''}</div>
+    <button class="btn" onclick="trasMomentoC()">CONTINUAR</button>`;
+  }
+  return `<div class="card oro"><div class="eyebrow">${TO.nom} · ${RONDAS_C[TO.rondas][TO.ronda]}</div>
+      <div class="titulo">${T.titulo}</div><p class="sub">${T.sit}</p>
+      <div class="stats" style="margin-top:10px"><div class="stat"><span>Empezáis</span><b>${textoPuntos(M.inicio)}</b></div><div class="stat"><span>Saca</span><b>${M.saca === 0 ? 'Vosotros' : 'Ellos'}</b></div></div></div>
+    <div class="card"><div class="eyebrow">ENFRENTE</div><p class="sub" style="margin-top:6px"><b style="color:var(--txt)">${R.nombre} / ${R.nombre2}</b><br>Juegan a ${R.juego} · nivel ${R.nivel.toFixed(1)} (tú ${nivelCarrera(CR.j).total.toFixed(1)})</p></div>
+    <button class="btn oro" onclick="jugarMomentoEnVivo()">🎾 JUGARLO EN LA PISTA</button>
+    <button class="btn fantasma" onclick="simularMomentoC()">⏩ SIMULAR</button>
+    <p class="muted" style="text-align:center">Ganáis el juego y ganáis el partido. A 40-40, punto de oro.</p>`;
+}
+function vFinTorneoC(){
+  const F = CR.finT, TO = CR.torneo, j = CR.j, delta = F.antes && j.ranking ? F.antes - j.ranking : 0;
+  const listo = j.puntosMejora <= 0 || statsAlMaximo(j);
+  return `<div class="card ${F.campeon?'oro':''}"><div class="eyebrow">${TO.nom}</div><div class="titulo">${F.campeon?'🏆 ':''}${F.ronda}</div>
+    <div class="stats"><div class="stat"><span>Puntos</span><b style="color:var(--acento)">+${F.pts}</b></div><div class="stat"><span>Ranking</span><b>${j.ranking?'#'+j.ranking:'—'} ${delta?`<small style="font-size:12px;color:${delta>0?'var(--acento)':'var(--mal)'}">${delta>0?'▲':'▼'}${Math.abs(delta)}</small>`:''}</b></div></div>
+    <div style="margin-top:8px">${TO.partidos.map(p=>`<div class="linea"><b>${p.gano?'✅':'❌'} ${p.ronda}${p.clave?' · 🎾':''}</b><span>${p.marcador}</span></div>`).join('')}</div></div>
+  <div class="card"><div class="eyebrow">MEJORA TU JUGADOR · ${j.puntosMejora} PUNTO${j.puntosMejora===1?'':'S'}</div>${Object.keys(STATS).map(k=>barraStatC(k, true)).join('')}</div>
+  <button class="btn" ${listo ? 'onclick="siguienteTrimestreC()"' : 'disabled style="opacity:.4"'}>${listo ? 'SIGUIENTE TORNEO' : 'REPARTE TUS MEJORAS'}</button>`;
+}
+function vFinTemporadaC(){
+  const F = CR.finTemp, j = CR.j;
+  return `<div class="card hero"><div class="eyebrow">FIN DE LA TEMPORADA ${F.n}</div><div class="titulo">${j.ranking ? '#'+j.ranking+' DEL MUNDO' : 'SIN RANKING'}</div>
+    <div class="stats"><div class="stat"><span>Títulos del año</span><b>${F.titulos}</b></div><div class="stat"><span>Mejor puesto</span><b>${j.mejorRank?'#'+j.mejorRank:'—'}</b></div>
+    <div class="stat"><span>Juegos decisivos</span><b>${j.momentosG}/${j.momentosJ}</b></div><div class="stat"><span>Jugados en pista</span><b>${j.enVivo}</b></div></div></div>
+  <button class="btn" onclick="siguienteTemporadaC()">${j.edad+1 >= 36 ? 'ÚLTIMA: RETIRARME' : 'SIGUIENTE TEMPORADA'}</button>
+  <button class="btn fantasma" onclick="retirarseC()">RETIRARME AHORA</button>`;
+}
+function vRetiroC(){
+  const j = CR.j, L = CR.legado || legadoC(j);
+  return `<div class="card oro"><div class="eyebrow">SE ACABÓ · ${j.edad} AÑOS</div><div class="titulo">${L.rango}</div><p class="sub">${L.txt}</p>
+    <div class="stats" style="margin-top:10px"><div class="stat"><span>Mejor ranking</span><b>${j.mejorRank?'#'+j.mejorRank:'—'}</b></div><div class="stat"><span>Títulos</span><b>${j.titulos.length}</b></div>
+    <div class="stat"><span>Partidos</span><b>${j.pg}-${j.pp}</b></div><div class="stat"><span>Jugados en pista</span><b>${j.enVivo}</b></div></div></div>
+  ${j.titulos.length ? `<div class="card"><div class="eyebrow">VITRINA</div>${j.titulos.slice().reverse().slice(0,10).map(t=>`<div class="linea"><b>🏆 ${t.nom}</b><span>T${t.t}</span></div>`).join('')}</div>` : ''}
+  <button class="btn" onclick="borrarCarrera();pintarCarrera()">NUEVA CARRERA</button>`;
+}
+
+/* ─────────── ARRANQUE ─────────── */
+if(hayDOM){
+  prepararControles();
+  addEventListener('resize', () => { if(P && !$('#juego').hidden) ajustarLienzo(); });
+  pintarMenu();
+}
+</script>
+</body>
+</html>
