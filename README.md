@@ -9,7 +9,7 @@ Juego de carrera de pádel en un solo archivo HTML, en español. Empiezas con 17
 - **Modo carrera.** Eliges tu país entre los 21 hispanohablantes, tu lado, tu estilo y tu pista favorita. El país no da ventaja: todas las carreras empiezan igual.
 - **Calendario por trimestres.** FIP Promises, Rise, Star, Gold y Platinum, Premier Padel P2 y P1, los cuatro Majors y las Finals.
 - **Partidos simulados con momentos clave.** Los momentos clave se juegan en la pista o en minijuegos, y las finales siempre en la pista. El % que se muestra es la probabilidad real.
-- **El circuito de verdad.** Las 20 mejores parejas son jugadores reales del Premier Padel: el ranking FIP del 21/09/2026 y las parejas del París Major. Cada trimestre esas parejas juegan su propio calendario y suben o bajan según los puntos que ganan.
+- **El circuito de verdad.** Las 20 mejores parejas son jugadores reales del Premier Padel: el ranking FIP del 21/09/2026 y las parejas del París Major. Al cerrarse cada trimestre esas parejas juegan su propio calendario, con un solo campeón por torneo, y suben o bajan según lo que ganan. Lo que pasó sale en las **noticias del circuito**, el ranking te muestra **quién tienes alrededor** y cuánto te falta para pasarlo, y si estás en el top 12 te puede llamar **una estrella** para jugar con vos (y su pareja se queda sola).
 - **Dos temas:** "Día de pista" (claro, por defecto) y el oscuro de siempre. Se cambia con el botón de arriba a la derecha o desde Cómo se juega, y queda guardado.
 - **Mundial de selecciones** cada dos años, **desafío del día**, **entrenamiento**, **mercado de parejas**, **El Ídolo** (el modo difícil) y carreras guardadas.
 

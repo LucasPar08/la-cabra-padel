@@ -109,7 +109,7 @@ rep("""  facil:   { nom:'Fácil',   rival:12, cal:.1,  alcance:.16, sim:5.5, ele
   normal:  { nom:'Normal',  rival:8,  cal:.07, alcance:.1,  sim:4,   eleccion:.12, ayuda:{FIP1:9, FIP2:7, FIP3:4, FIP4:2}, rafaga:.06, rafagaMs:220, d:'Asequible: si juegas con cabeza, ganas torneos.' },
   dificil: { nom:'Difícil', rival:0,  cal:.02, alcance:.03, sim:2.5, eleccion:.06, ayuda:{}, rafaga:.01, rafagaMs:0, d:'Como el circuito de verdad: cada título cuesta muchísimo.' },""",
 """  facil:   { nom:'Fácil',   rival:12, cal:.1,  alcance:.16, sim:7.5, eleccion:.17, ayuda:{FIP1:5, FIP2:3.5, FIP3:2, FIP4:1}, rafaga:.1, rafagaMs:400, d:'Lo más llevadero: rivales lentos, más caminos buenos y más partidos ganados.' },
-  normal:  { nom:'Normal',  rival:8,  cal:.07, alcance:.1,  sim:5.8, eleccion:.142, ayuda:{FIP1:1.2, FIP2:.6, FIP3:0, FIP4:0}, rafaga:.06, rafagaMs:220, d:'Exigente: de joven se sufre, el primer título tarda y el número 1 es de unos pocos.' },
+  normal:  { nom:'Normal',  rival:8,  cal:.07, alcance:.1,  sim:5.8, eleccion:.142, ayuda:{FIP1:1.35, FIP2:.7, FIP3:0, FIP4:0}, rafaga:.06, rafagaMs:220, d:'Exigente: de joven se sufre, el primer título tarda y el número 1 es de unos pocos.' },
   dificil: { nom:'Difícil', rival:0,  cal:.02, alcance:.03, sim:3.8, eleccion:.09, ayuda:{}, rafaga:.01, rafagaMs:0, d:'Como el circuito de verdad: cada título es una hazaña.' },""")
 rep("const difActual = () => DIFICULTADES[PREF.dificultad] || DIFICULTADES.normal;",
 """let DIF_CACHE = { k:null, v:null };
@@ -126,7 +126,7 @@ function difActual(){
 # el ranking: la cima está más lejos (y más todavía en El Ídolo)
 rep("  if(edad<20) return (-1.2 + (edad-17)*0.4) * (1 - prec);",
     "  if(edad<21) return (-3.1 + (edad-17)*0.8) * (1 - prec);   /* de 17 a 20 se sufre de verdad */")
-rep("const ESCALA_RK = 1.0;", "const ESCALA_RK = 1.36;")
+rep("const ESCALA_RK = 1.0;", "const ESCALA_RK = 1.34;")
 rep("  pts = pts / ESCALA_RK;", "  pts = pts / (ESCALA_RK * (esIdolo() ? IDOLO_DUREZA.escala : 1));")
 # se crece más despacio
 rep("  let tasa = j.edad<=20 ? .11 : j.edad<=23 ? .12 : j.edad<=27 ? .10 : j.edad<=31 ? .06 : 0;",

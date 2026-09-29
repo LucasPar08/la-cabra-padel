@@ -55,7 +55,7 @@ ok(reales.length > 0, 'nunca te ofrecen un jugador de verdad');
 ok(reales.every(p => !A.asegurarCircuito(j).some(c => c.nombre === p.nombre || c.nombre2 === p.nombre)), 'te ofrecen a alguien que ya juega en el circuito');
 console.log(`4) pareja: de club ${deClub[0].nombre} · del circuito ${[...new Set(reales.map(p => p.nombre))].slice(0, 3).join(', ')}`);
 /* 6) el circuito se mueve con los años y no se rompe */
-for(let t = 0; t < 40; t++) A.evolucionarCircuito(j);
+for(let t = 0; t < 40; t++){ j.anio = 1 + Math.floor(t/4); j.trimestre = t % 4; A.S.trim = null; A.evolucionarCircuito(j); }
 pool = A.asegurarCircuito(j);
 const n2 = pool.flatMap(p => [p.nombre, p.nombre2]);
 ok(pool.length === 40 && new Set(n2).size === n2.length, 'tras diez años el circuito tiene repetidos o se descuadró');

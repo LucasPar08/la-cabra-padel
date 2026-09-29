@@ -21,27 +21,8 @@ rep("""function evolucionarCircuito(j){
   if(Math.random() < .6) pool[0].titulos++;
   for(let s = 1; s < 10; s++) if(Math.random() < .12) pool[s].titulos++;
 }""",
-"""function evolucionarCircuito(j){
-  const pool = asegurarCircuito(j), w = j.anio*TRIMESTRES_POR_ANIO + j.trimestre;
-  sembrarCircuito(pool, w);                        // por si vienen de una carrera vieja
-  moverNivelCircuito(pool);
-  simularTrimestreCircuito(j, pool, w, (S.trim && S.trim.jugados) || []);
-  pool.sort((a, b) => (b.pts || 0) - (a.pts || 0));  // el ranking, por puntos
-  /* de vez en cuando alguien de abajo deja el circuito y entra una pareja nueva,
-     que llega con los puntos de quien se va: se entra por la puerta de atrás */
-  if(Math.random() < .3){
-    const k = ri(26, pool.length - 1), fuera = pool[k];
-    pool.splice(k, 1);
-    const nueva = nuevaParejaCircuito(40, pool);
-    nueva.nivel = ratingDeRank(ri(28, 50));
-    nueva.hist = [];
-    const base = Math.max(150, Math.round((fuera.pts || ptsDeRank(38))*0.9));
-    for(let q = 0; q < 4; q++) nueva.hist.push({ w: w - 3 + q, pts: Math.round(base/4) });
-    nueva.pts = puntosPareja(nueva, w);
-    pool.push(nueva);
-    pool.sort((a, b) => (b.pts || 0) - (a.pts || 0));
-  }
-}""")
+"""/* el circuito juega su trimestre al cerrarse cada uno: ver cerrarCircuitoTrimestre */
+function evolucionarCircuito(j){ cerrarCircuitoTrimestre(j); }""")
 
 # ── el nivel de cada pareja es suyo, no el de la casilla que ocupa ──
 rep("  return { id:p.id, nombre:p.nombre, nombre2:p.nombre2, flag:p.flag, flag2:p.flag2, arq:p.arq, rank, rating: ratingDeRank(rank) + p.forma };",
