@@ -56,5 +56,12 @@ rep("""  if(j.pareja) j.parejasHist.push({nombre:j.pareja.nombre, anios:j.pareja
   j.pareja = c;
   if(c.estrella) ficharEstrella(j, c);""")
 
+# ── tu resultado queda completo: hasta qué ronda llegaste y contra quién fue el último
+#    partido (la final si ganaste, quien te eliminó si perdiste) ──
+rep("  tr.jugados.push({ id:ev.id, nom:ev.nom, t:ev.t, ronda:r.ronda, campeon:r.campeon, pts:r.pts, plata:r.plata, cayoEnPrevia:!!r.cayoEnPrevia });",
+    "  tr.jugados.push({ id:ev.id, nom:ev.nom, t:ev.t, ronda:r.ronda, campeon:r.campeon, pts:r.pts, plata:r.plata, cayoEnPrevia:!!r.cayoEnPrevia,\n" +
+    "                   rondas: to.previa && to.enPrevia ? -1 : to.ronda, rival: !to.lesionado && to.rival && to.rival.id ? to.rival.id : null,\n" +
+    "                   rivalNom: !to.lesionado && to.rival ? [to.rival.nombre, to.rival.nombre2] : null });")
+
 open(p, 'w', encoding='utf-8').write(s)
 print('circuito de verdad, noticias, alrededor y estrella')

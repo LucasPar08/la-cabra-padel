@@ -10,7 +10,7 @@ global.localStorage = { getItem: k => k in store ? store[k] : null, setItem: (k,
 global.requestAnimationFrame = () => 0; global.cancelAnimationFrame = () => {};
 eval(js + `;global.A = { get S(){ return S; }, get CFG(){ return CFG; }, crearYEmpezar, trimActual, elegirPorMi, salirTorneo, simularHastaElFinal, simularMomento,
   pasarTrimestre, elegirEvento, cerrarEvento, irPretemporada, repartirAuto, empezarTemporada, resolverDuelo, cerrarDuelo, vTemporada, vCalendario, vTorneo,
-  semanaDelAnio, torneosDeLaSemana, recomendacionSemana, asegurarSemanas, S_CAL: () => S.cal, render };`);
+  semanaDelAnio, torneosDeLaSemana, recomendacionSemana, asegurarSemanas, S_CAL: () => S.cal, render, cerrarCuadro, elegirCasilla };`);
 const errores = []; const ok = (c, t) => { if(!c) errores.push(t); return c; };
 document.querySelector('#fnom').value = 'Bot'; A.CFG.pais = 'AR'; A.crearYEmpezar();
 const j = A.S.j;
@@ -31,7 +31,7 @@ while(j.anio <= ANIOS && pasos++ < 20000){
     if(p === 'temporada'){
       const antes = A.semanaDelAnio(j), anio = j.anio;
       A.vTemporada();
-      if(A.elegirPorMi()){ porAnio[anio] = (porAnio[anio] || { t:0, d:0 }); porAnio[anio].t++; while(A.S.torneo && !A.S.torneo.fin){ if(A.S.pantalla === 'momento') A.simularMomento(); else A.simularHastaElFinal(); } A.vTorneo(); A.salirTorneo(); }
+      if(A.elegirPorMi()){ porAnio[anio] = (porAnio[anio] || { t:0, d:0 }); porAnio[anio].t++; for(let g = 0; A.S.torneo && !A.S.torneo.fin && g < 300; g++){ const q = A.S.pantalla; if(q === 'momento') A.simularMomento(); else if(q === 'cuadro'){ const c = A.S.cuadro; if(c.terminado) A.cerrarCuadro(); else { const r = c.rondas[c.actual]; A.elegirCasilla([...Array(r.casillas).keys()].find(i => !(r.falladas||[]).includes(i) && i !== r.pista)); } } else A.simularHastaElFinal(); } A.vTorneo(); A.salirTorneo(); }
       else { porAnio[anio] = (porAnio[anio] || { t:0, d:0 }); porAnio[anio].d++; }
       semanas++; energiaMin = Math.min(energiaMin, j.energia);
     }

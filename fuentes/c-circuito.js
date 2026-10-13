@@ -71,9 +71,11 @@ function torneosDePareja(puesto, evs){
    contra el cuadro, y luego se pone orden como en un cuadro de verdad: un solo
    campeón, como mucho dos en la final, cuatro en semis... Así en las noticias
    nunca hay dos campeones del mismo torneo. */
+const YO = { yo: true };
 function simularTrimestreCircuito(j, pool, w, jugados, evs){
-  const mios = new Set(jugados || []);
-  evs = (evs || []).filter(ev => !mios.has(ev.id) && TIERS[ev.t] && TIERS[ev.t].pts && TIERS[ev.t].pts[0]);
+  /* lo que jugaste tú este trimestre, por torneo */
+  const mios = new Map((jugados || []).map(x => [x.id, x]));
+  evs = (evs || []).filter(ev => TIERS[ev.t] && TIERS[ev.t].pts && TIERS[ev.t].pts[0]);
   const inscritos = new Map();
   pool.forEach((p, i) => {
     for(const ev of torneosDePareja(i + 1, evs)){
@@ -83,19 +85,45 @@ function simularTrimestreCircuito(j, pool, w, jugados, evs){
   });
   const resultados = [];
   for(const ev of evs){
-    const lista = inscritos.get(ev.id);
-    if(!lista) continue;
-    const T = TIERS[ev.t];
+    const T = TIERS[ev.t], R = T.rondas, mio = mios.get(ev.id);
+    const enCuadro = mio && !mio.cayoEnPrevia && (mio.campeon || mio.rondas >= 0);
+    const tope = mio && mio.campeon ? R : enCuadro ? mio.rondas : null;     // hasta dónde llegaste tú
+    /* la pareja de tu último partido (la final si ganaste, la que te eliminó si no), si es del circuito */
+    const suyo = enCuadro && mio.rival ? pool.find(p => p.id === mio.rival) : null;
+    let lista = (inscritos.get(ev.id) || []).filter(x => !suyo || x.p !== suyo);
+    if(!lista.length && !enCuadro) continue;
     for(const x of lista){ x.ganadas = rondasQueGana(nivelPareja(x.p, x.puesto), ev.t, T); x.azar = Math.random(); }
     lista.sort((a, b) => b.ganadas - a.ganadas || a.azar - b.azar);
+    if(enCuadro){
+      /* tú ocupas tu sitio en el cuadro, y quien jugó contigo el último partido también:
+         si ganaste, perdió la final; si perdiste, pasó al menos de esa ronda. Si no es
+         del circuito, entra como pareja de fuera: ocupa su sitio pero no suma puntos */
+      const n = mio.rivalNom;
+      const rival = suyo ? { p: suyo, puesto: pool.indexOf(suyo) + 1, ganadas: 0 }
+                  : { fuera: n ? { nombre: n[0], nombre2: n[1] } : null, ganadas: 0 };
+      if(mio.campeon){
+        lista.unshift({ yo: true, ganadas: R });
+        rival.ganadas = R - 1; lista.splice(1, 0, rival);
+      } else {
+        const minimo = tope + 1;
+        rival.ganadas = suyo ? Math.max(minimo, rondasQueGana(nivelPareja(suyo, rival.puesto), ev.t, T)) : minimo;
+        let pos = lista.findIndex(x => x.ganadas < rival.ganadas); if(pos < 0) pos = lista.length;
+        lista.splice(Math.min(pos, Math.pow(2, R - minimo) - 1), 0, rival);
+        const desde = lista.indexOf(rival) + 1;
+        pos = lista.findIndex((x, i) => i >= desde && x.ganadas < tope); if(pos < 0) pos = lista.length;
+        lista.splice(Math.min(Math.max(pos, desde), Math.pow(2, R - tope) - 1), 0, { yo: true, ganadas: tope });
+      }
+    }
     lista.forEach((x, k) => {
-      x.ganadas = Math.min(x.ganadas, T.rondas - Math.ceil(Math.log2(k + 1)));
-      const pts = T.pts[Math.max(0, T.rondas - x.ganadas)] || 0;
+      if(x.yo || 'fuera' in x) return;
+      x.ganadas = Math.min(x.ganadas, R - Math.ceil(Math.log2(k + 1)));
+      const pts = T.pts[Math.max(0, R - x.ganadas)] || 0;
       if(pts > 0) x.p.hist.push({ w, pts });
-      if(x.ganadas >= T.rondas) x.p.titulos = (x.p.titulos || 0) + 1;
+      if(x.ganadas >= R) x.p.titulos = (x.p.titulos || 0) + 1;
     });
-    resultados.push({ ev, campeon: lista[0].ganadas >= T.rondas ? lista[0].p : null,
-                      finalista: lista[1] && lista[1].ganadas >= T.rondas - 1 ? lista[1].p : null });
+    const quien = x => !x ? null : x.yo ? YO : 'fuera' in x ? x.fuera : x.p;
+    resultados.push({ ev, campeon: lista[0] && lista[0].ganadas >= R ? quien(lista[0]) : null,
+                      finalista: lista[1] && lista[1].ganadas >= R - 1 ? quien(lista[1]) : null });
   }
   return resultados;
 }
@@ -149,19 +177,22 @@ function cerrarCircuitoTrimestre(j){
 }
 
 /* ── Las noticias del trimestre ── */
-const nomCorto = p => `${esc(apellidoDe(p.nombre))} / ${esc(apellidoDe(p.nombre2))}`;
+const nomCorto = p => p.yo ? gx('vosotros', 'vosotras') : `${esc(apellidoDe(p.nombre))} / ${esc(apellidoDe(p.nombre2))}`;
 function apellidoDe(n){ const x = String(n || '').trim().split(' '); return x.length > 2 && /^(di|de|del|dal|van|la)$/i.test(x[x.length - 2]) ? x.slice(-2).join(' ') : x[x.length - 1]; }
 function hacerNoticias(j, pool, res, antes, numero1, w){
   const items = [];
   if(j.noticiasFichaje){ items.push(...j.noticiasFichaje); j.noticiasFichaje = null; }
   const rivales = new Set((typeof rivalidades === 'function' ? rivalidades(j) : []).map(r => r.id));
-  /* los títulos grandes; si no hubo, los P2 */
-  const grandes = res.filter(r => r.campeon && ['FIN','MJ','P1'].includes(r.ev.t)).sort((a, b) => orden(b.ev.t) - orden(a.ev.t));
-  const lista = grandes.length ? grandes : res.filter(r => r.campeon && r.ev.t === 'P2');
+  /* vuestros títulos primero, de lo que sea; después los grandes del circuito y, si no hubo, los P2 */
+  const que = r => r.ev.t === 'FIN' ? 'las Finals' : 'el ' + esc(r.ev.nom);
+  for(const r of res.filter(r => r.campeon === YO).sort((a, b) => orden(b.ev.t) - orden(a.ev.t)))
+    items.push({ ic:'🏆', txt:`<b>¡${gx('Vosotros', 'Vosotras')}!</b> Ganáis ${que(r)}${r.finalista ? ` contra ${nomCorto(r.finalista)}` : ''}.` });
+  const ajenos = res.filter(r => r.campeon && r.campeon !== YO);
+  const grandes = ajenos.filter(r => ['FIN','MJ','P1'].includes(r.ev.t)).sort((a, b) => orden(b.ev.t) - orden(a.ev.t));
+  const lista = grandes.length ? grandes : ajenos.filter(r => r.ev.t === 'P2');
   for(const r of lista.slice(0, 3)){
-    const que = r.ev.t === 'FIN' ? 'las Finals' : 'el ' + esc(r.ev.nom);
     const rival = rivales.has(r.campeon.id);
-    items.push({ ic: rival ? '⚔️' : '🏆', txt: `${rival ? 'Tus rivales ' : ''}<b>${nomCorto(r.campeon)}</b> ganan ${que}${r.finalista ? ` contra ${nomCorto(r.finalista)}` : ''}.` });
+    items.push({ ic: rival ? '⚔️' : '🏆', txt: `${rival ? 'Tus rivales ' : ''}<b>${nomCorto(r.campeon)}</b> ganan ${que(r)}${r.finalista ? ` contra ${nomCorto(r.finalista)}` : ''}.` });
   }
   /* el número 1 */
   if(pool[0] && pool[0].id !== numero1) items.push({ ic:'👑', txt:`<b>${nomCorto(pool[0])}</b>, nuevo número 1 del mundo.` });

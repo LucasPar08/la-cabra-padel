@@ -36,7 +36,7 @@ try{
   A.comprarMaterial('carbono'); A.comprarMaterial('ligeras');
   const despues = A.probPartido(j, Object.assign({ rating: 60, arq: { nom:'x', remate:1, globo:1 } }), { t:'FIP2', pista:'indoor' });
   console.log(`3a) material: bono +${A.bonoEquipo(j).toFixed(1)} de nivel · mismo rival: ${antes}% → ${despues}% · dinero ${j.dinero}`);
-  const pareja = j.pareja.nombre, ev = A.torneosDelTrimestre().find(e => A.estadoTorneo(j, e).tipo === 'directo');
+  const pareja = j.pareja.nombre, ev = A.torneosDelTrimestre().find(e => { j.semana = e.sem || 1; return A.estadoTorneo(j, e).tipo === 'directo'; });   // la semana de ese torneo
   A.abrirTorneo(ev.id); A.render();
   A.elegirParejaTorneo(ev.id, 1); A.render();
   const sup = A.suplentesTrimestre(j)[0].nombre;
