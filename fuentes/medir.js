@@ -12,7 +12,7 @@ global.document = { querySelector: s => cache[s] || (cache[s] = el()), querySele
                     body:{ offsetHeight:0, classList:{ add(){}, remove(){} } }, addEventListener(){} };
 global.window = { scrollY:0, scrollTo(){} };
 eval(js + `;global.A = { get S(){ return S; }, get CFG(){ return CFG; }, get P(){ return P; }, get ULTIMA(){ return ULTIMA_PISTA; }, get PREF(){ return PREF; },
-  crearYEmpezar, trimestreEntreno, pasarTrimestre, elegirEvento, cerrarEvento, resolverDuelo, cerrarDuelo, irPretemporada, repartirAuto, empezarTemporada,
+  crearYEmpezar, trimestreEntreno, elegirPorMi, pasarTrimestre, elegirEvento, cerrarEvento, resolverDuelo, cerrarDuelo, irPretemporada, repartirAuto, empezarTemporada,
   calcularLegado, orden, ESTILOS, elegirCasilla, cerrarCuadro, probsGolpe, render, vCuadro, vDuelo,
   torneosDelTrimestre, estadoTorneo, abrirTorneo, inscribirse, jugarRonda, simularHastaElFinal, jugarMomento, simularMomento, probMomento,
   salirTorneo, cerrarTrimestre, trimActual, actualizar, vTorneo, vTemporada, vMomento, vComo, vFinRapido, partidoRapido, elegirCaminoMomento, continuarMomento, leerZonaMomento, minijuegoDeRonda, probPartido, pegarRafaga, continuarMundial, vMundial };`);
@@ -95,15 +95,8 @@ function carrera(){
       if(p === 'temporada'){
         const tr = A.trimActual();
         if(tr.cerrado){ A.pasarTrimestre(); continue; }
-        const lista = A.torneosDelTrimestre().map(ev => ({ ev, est:A.estadoTorneo(j, ev) })).filter(x => x.est.tipo === 'directo' || x.est.tipo === 'previa');
-        if(lista.length){
-          lista.sort((a,b) => (b.est.tipo === 'directo') - (a.est.tipo === 'directo') || A.orden(b.ev.t) - A.orden(a.ev.t));
-          A.abrirTorneo(lista[0].ev.id); A.vTorneo(); A.inscribirse();
-          torneoBot(); A.vTorneo(); A.salirTorneo(); A.vTemporada();
-        }
-        else if(tr.jugados.length) A.cerrarTrimestre();
-        else if(j.lesion && j.lesionSem > 0) A.pasarTrimestre();
-        else A.trimestreEntreno();
+        /* la temporada por fechas: cada semana, lo que el juego dice que conviene */
+        if(A.elegirPorMi()){ A.vTorneo(); torneoBot(); A.vTorneo(); A.salirTorneo(); A.vTemporada(); }
       }
       else if(p === 'mundial'){ const mu = S.mundial; A.vMundial(); if(mu.eleccion){ cuenta.mundiales = (cuenta.mundiales||0) + 1; A.continuarMundial(); } else { const g = mu.rafaga.golpes[mu.rafaga.i]; A.pegarRafaga(Math.min(1, Math.max(0, g.centro + gaussP()*0.12))); } }
       else if(p === 'duelo'){ const d = S.duelo; if(d.resultado) A.cerrarDuelo(); else A.resolverDuelo(0); }
@@ -127,7 +120,9 @@ try{
 }catch(e){ errores.push('partido rápido: ' + e.message); }
 
 const F = [];
-for(let i = 0; i < N; i++){ __seed(1000 + i*7919); F.push(carrera()); }
+const DESDE = +(process.env.DESDE || 0);
+for(let i = DESDE; i < DESDE + N; i++){ __seed(1000 + i*7919); F.push(carrera()); }
+if(process.env.VOLCAR) fs.writeFileSync(process.env.VOLCAR, JSON.stringify(F.map(f => ({ mejor:f.mejor, pg:f.pg, pp:f.pp, primero:f.primero, tit:f.tit }))));
 const med = a => { const s = a.slice().sort((x,y)=>x-y); return s[Math.floor(s.length/2)]; };
 const leg = {}; F.forEach(f => leg[f.leg] = (leg[f.leg]||0) + 1);
 console.log(`CIRCUITO con momentos clave · ${N} carreras · dificultad ${A.PREF.dificultad}`);
@@ -146,9 +141,3 @@ console.log('── ¿SE CUMPLE EL % QUE SE VE EN EL TORNEO? ──');
 for(const k of Object.keys(ronda.cubos).sort()){ const c = ronda.cubos[k]; console.log(`  mostraba ${k}: ganó el ${Math.round(100*c.g/c.n)}% de ${c.n} partidos (media mostrada ${Math.round(c.sum/c.n)}% · con momento clave el ${Math.round(100*c.mom/c.n)}%)`); }
 console.log(errores.length ? '⚠️ ' + errores.slice(0, 6).join('\n   ') : '✅ sin errores');
 process.exit(0);
-
-/* resumen corto contra los objetivos: nº1, primer título, % ganados, mejor puesto */
-const pg = F.reduce((a,f)=>a+f.pg,0), pp = F.reduce((a,f)=>a+f.pp,0), n1 = F.filter(f=>f.mejor===1).length;
-const conT = F.filter(f=>f.primero), prim = conT.length ? med(conT.map(f=>f.primero)) : 99;
-const primMed = (() => { const s2 = F.map(f => f.primero || 99).sort((a,b)=>a-b); return s2[Math.floor(s2.length/2)]; })();
-console.log(`OBJ ${process.argv[2]} · nº1 ${(15*n1/N).toFixed(1)}/15 (${n1}/${N}) · primer título temp ${primMed} (con títulos ${prim}) · ganados ${(100*pg/(pg+pp)).toFixed(1)}% · mejor puesto med #${med(F.map(f=>f.mejor))} · top10 ${F.filter(f=>f.mejor<=10).length}/${N} · títulos med ${med(F.map(f=>f.tit))}`);

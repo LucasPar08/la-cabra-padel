@@ -10,7 +10,7 @@ global.document = { querySelector: s => cache[s] || (cache[s] = el()), querySele
                     body:{ offsetHeight:0, classList:{ add(){}, remove(){} } }, addEventListener(){} };
 global.window = { scrollY:0, scrollTo(){} };
 eval(js + `;global.A = { get S(){ return S; }, get CFG(){ return CFG; }, get P(){ return P; }, get ULTIMA(){ return ULTIMA_PISTA; }, get PREF(){ return PREF; },
-  crearYEmpezar, trimestreEntreno, pasarTrimestre, elegirEvento, cerrarEvento, resolverDuelo, cerrarDuelo, irPretemporada, repartirAuto, empezarTemporada,
+  crearYEmpezar, trimestreEntreno, elegirPorMi, pasarTrimestre, elegirEvento, cerrarEvento, resolverDuelo, cerrarDuelo, irPretemporada, repartirAuto, empezarTemporada,
   calcularLegado, orden, ESTILOS, elegirCasilla, cerrarCuadro, probsGolpe, render, vCuadro, vDuelo,
   torneosDelTrimestre, estadoTorneo, abrirTorneo, inscribirse, jugarRonda, simularHastaElFinal, jugarMomento, simularMomento, probMomento,
   salirTorneo, cerrarTrimestre, trimActual, actualizar, vTorneo, vTemporada, vMomento, vComo, vFinRapido, partidoRapido, elegirCaminoMomento, continuarMomento, leerZonaMomento, minijuegoDeRonda, probPartido, pegarRafaga, continuarMundial, vMundial };`);
@@ -93,15 +93,8 @@ function carrera(){
       if(p === 'temporada'){
         const tr = A.trimActual();
         if(tr.cerrado){ A.pasarTrimestre(); continue; }
-        const lista = A.torneosDelTrimestre().map(ev => ({ ev, est:A.estadoTorneo(j, ev) })).filter(x => x.est.tipo === 'directo' || x.est.tipo === 'previa');
-        if(lista.length){
-          lista.sort((a,b) => (b.est.tipo === 'directo') - (a.est.tipo === 'directo') || A.orden(b.ev.t) - A.orden(a.ev.t));
-          A.abrirTorneo(lista[0].ev.id); A.vTorneo(); A.inscribirse();
-          torneoBot(); A.vTorneo(); A.salirTorneo(); A.vTemporada();
-        }
-        else if(tr.jugados.length) A.cerrarTrimestre();
-        else if(j.lesion && j.lesionSem > 0) A.pasarTrimestre();
-        else A.trimestreEntreno();
+        /* la temporada por fechas: cada semana, lo que el juego dice que conviene */
+        if(A.elegirPorMi()){ A.vTorneo(); torneoBot(); A.vTorneo(); A.salirTorneo(); A.vTemporada(); }
       }
       else if(p === 'mundial'){ const mu = S.mundial; A.vMundial(); if(mu.eleccion){ cuenta.mundiales = (cuenta.mundiales||0) + 1; A.continuarMundial(); } else { const g = mu.rafaga.golpes[mu.rafaga.i]; A.pegarRafaga(Math.min(1, Math.max(0, g.centro + gaussP()*0.12))); } }
       else if(p === 'duelo'){ const d = S.duelo; if(d.resultado) A.cerrarDuelo(); else A.resolverDuelo(0); }

@@ -21,7 +21,7 @@ a = s.index('function vTemporada(){'); b = s.index('/* ── RESULTADO DE LA GI
 s = s[:a] + s[b:]
 
 # el código nuevo, antes del arranque
-motor = leer('c-motor1.js') + leer('c-motor2.js') + leer('c-motor3.js') + leer('c-carrera.js') + leer('c-vistas.js') + leer('c-extra.js') + leer('c-look.js') + leer('c-emblemas.js') + leer('c-carreras.js') + leer('c-mundial.js') + leer('c-desafio.js') + leer('c-idolo.js') + leer('c-reales.js') + leer('c-circuito.js') + leer('c-tema.js')
+motor = leer('c-motor1.js') + leer('c-motor2.js') + leer('c-motor3.js') + leer('c-carrera.js') + leer('c-vistas.js') + leer('c-extra.js') + leer('c-look.js') + leer('c-emblemas.js') + leer('c-carreras.js') + leer('c-mundial.js') + leer('c-desafio.js') + leer('c-idolo.js') + leer('c-reales.js') + leer('c-circuito.js') + leer('c-tema.js') + leer('c-calendario.js')
 rep('/* ─────────── ARRANQUE ─────────── */', motor + '\n/* ─────────── ARRANQUE ─────────── */')
 rep("S = { pantalla:'inicio', j:null, cal:null, msgs:[], pantallaPrevia:null };",
     "S = { pantalla:'inicio', j:null, cal:null, msgs:[], pantallaPrevia:null, trim:null, torneo:null };")

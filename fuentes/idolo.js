@@ -17,7 +17,7 @@ const crear = (nombre, pais) => { document.querySelector('#fnom').value = nombre
 /* 1) carrera normal: la dificultad nueva */
 const jN = crear('Normal Pérez', 'AR');
 const dN = A.difActual();
-ok(jN.modo === 'normal' && dN.sim === 5.8, 'la carrera normal no tiene la dificultad nueva: ' + dN.sim);
+ok(jN.modo === 'normal' && dN.sim === 3.0, 'la carrera normal no tiene la dificultad nueva: ' + dN.sim);
 const rival = Object.assign(A.duplaRival(25), { arq: A.ARQUETIPOS[0] });   /* el nivel se fija abajo: así se mide la dificultad, no la suerte del sorteo */
 const mideProb = (j) => { let t = 0; for(let i = 0; i < 6; i++) t += A.probPartido(j, Object.assign({}, rival, { _prob:null }), ev); return Math.round(t/6); };
 const ev = { t:'P2', nom:'x', ciudad:'Madrid', pista:'indoor' };
@@ -33,6 +33,8 @@ ok(jI.modo === 'idolo' && jI.idoloInicio === 'abajo', 'no quedó en modo Ídolo'
 ok(Math.abs(dI.sim - (dN.sim - A.IDOLO_DUREZA.sim)) < 1e-9 && dI.rival === dN.rival - A.IDOLO_DUREZA.rival && Object.keys(dI.ayuda).length === 0, 'el Ídolo no endurece la dificultad');
 for(const k of A.STAT_KEYS) jI.stats[k] = 80;
 jI.pareja = jN.pareja;
+/* el mismo jugador en todo menos el modo: si no, la edad o la precocidad al azar tapan la diferencia */
+for(const k of ['precocidad','estilo','posicion','mano','edad','pistaFav','forma','energia','moral']) jI[k] = jN[k];
 const probIdolo = mideProb(jI);
 ok(probIdolo <= probNormal - 3, `en el Ídolo no cuesta bastante más ganar (${probIdolo}% vs ${probNormal}%)`);
 /* el ranking: los mismos puntos valen menos */
