@@ -82,5 +82,10 @@ rep("""    j.forma = clamp(j.forma + (opp.rank < (j.ranking||3000) ? 1.6 : 0.7),
     j.moral = clamp(j.moral + 2, 0, 100);""", """    j.forma = clamp(j.forma + (esBase(to.ev.t) ? .4 : opp.rank < (j.ranking||3000) ? 1.6 : 0.7), -12, 12);
     j.moral = clamp(j.moral + (esBase(to.ev.t) ? 1 : 2), 0, 100);""")
 
+# ── 9) la energía, más tranquila: los partidos cansan la mitad y la previa menos ──
+rep("""    energia -= Math.max(2.0, costo);""", """    energia -= Math.max(1.0, costo*.5);         // más tranquilo: se puede jugar casi todas las semanas""")
+rep("        e = clamp(suma/N - (p.previa ? 7 : 0), 0, 100);", "        e = clamp(suma/N - (p.previa ? 3 : 0), 0, 100);")
+rep("  j.energia = clamp(res.energia - (to.enPrevia ? 7 : 0), 0, 100);", "  j.energia = clamp(res.energia - (to.enPrevia ? 3 : 0), 0, 100);")
+
 open(p, 'w', encoding='utf-8').write(s)
 print('torneos de abajo')

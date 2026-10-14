@@ -35,7 +35,7 @@ function duplaAmateur(rk){
   return d;
 }
 /* una semana de club cansa menos: duermes en casa */
-const DESGASTE_SEMANA_BASE = 4;
+const DESGASTE_SEMANA_BASE = 2;
 const CLUBES_BASE = ['Club Náutico','Club de Campo','Club Atlético','Polideportivo Municipal','Club Social','Club Deportivo',
   'Club de Tenis y Pádel','Pádel Center','Club Universitario','Country Club','Club del Parque','Club Ferroviario','Club Hípico'];
 /* cada semana: un torneo de club en tu ciudad y un open regional; cada dos, una etapa del circuito nacional */
@@ -56,7 +56,7 @@ function giraBase(j, tri){
 }
 /* una semana de torneo cansa aunque pierdas pronto: viaje, hotel, entrenar en pista ajena.
    Se cobra al terminar el torneo, para que los % que viste al entrar sean los de verdad. */
-const DESGASTE_SEMANA_TORNEO = 8;
+const DESGASTE_SEMANA_TORNEO = 3;
 const ANIO_BASE = 2026;                         // la temporada 1 es la de 2027
 const MESES_CORTOS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const MESES_LARGOS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
