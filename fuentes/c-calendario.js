@@ -9,6 +9,51 @@
    cuentan los puntos, se mueve el circuito y llega el balance.
    ═══════════════════════════════════════════════════════════════ */
 const SEMANAS_TRIMESTRE = 13;
+
+/* ── Los torneos de abajo ──
+   Antes del FIP está el pádel de cada país: el torneo del club, el open regional
+   y el circuito nacional. Ahí empieza todo el mundo. Dan pocos puntos pero se
+   pueden ganar, y cuando tu ranking ya está por encima, no te dejan entrar. */
+Object.assign(TIERS, {
+  CLUB:{nom:'TORNEO DE CLUB',    cls:'t-F', pts:[3,2,1,0,0],    prem:300,  rondas:4, acc:9999, base:true},
+  REG: {nom:'OPEN REGIONAL',     cls:'t-F', pts:[5,3,2,1,0,0],  prem:700,  rondas:5, acc:9999, base:true},
+  NAC: {nom:'CIRCUITO NACIONAL', cls:'t-F', pts:[8,5,3,2,1,0],  prem:1500, rondas:5, acc:9999, base:true},
+});
+const esBase = t => !!(TIERS[t] && TIERS[t].base);
+/* con este ranking ya no te dejan jugarlos */
+const TOPE_BASE = { CLUB:1400, REG:900, NAC:600 };
+/* los rivales no tienen ranking FIP: el puesto es el que tendrían, sólo para medir su nivel */
+const RANGOS_BASE = {
+  CLUB:[[3200,5000],[2600,4000],[2200,3400],[1800,2900]],
+  REG: [[2600,4200],[2200,3400],[1800,2900],[1500,2400],[1300,2000]],
+  NAC: [[2000,3200],[1600,2500],[1350,2150],[1150,1850],[1000,1600]],
+};
+const ratingAmateur = rk => 99 - 12.6*Math.log10(rk + 1);         // la misma escala que el ranking, sin el tope del 2000
+function duplaAmateur(rk){
+  const d = duplaRival(rk);
+  d.rating += ratingAmateur(rk) - ratingDeRank(rk);
+  return d;
+}
+/* una semana de club cansa menos: duermes en casa */
+const DESGASTE_SEMANA_BASE = 4;
+const CLUBES_BASE = ['Club Náutico','Club de Campo','Club Atlético','Polideportivo Municipal','Club Social','Club Deportivo',
+  'Club de Tenis y Pádel','Pádel Center','Club Universitario','Country Club','Club del Parque','Club Ferroviario','Club Hípico'];
+/* cada semana: un torneo de club en tu ciudad y un open regional; cada dos, una etapa del circuito nacional */
+function giraBase(j, tri){
+  const pais = paisDe(j), ciudades = pais.ciudades.map(c => c.n), pista = pistaDeCasa(j), torneos = [];
+  const casa = j.ciudad || ciudades[0], c0 = ri(0, CLUBES_BASE.length - 1);
+  const sede = s => ({ pista, pais: null, sedePais: pais.id, sem: s, base: true });
+  for(let s = 1; s <= SEMANAS_TRIMESTRE; s++){
+    const reg = ciudades[(s + tri) % ciudades.length];
+    torneos.push(Object.assign({ t:'CLUB', nom:`Torneo del ${CLUBES_BASE[(c0 + s) % CLUBES_BASE.length]}`, ciudad: casa }, sede(s)));
+    torneos.push(Object.assign({ t:'REG', nom:`Open Regional de ${reg}`, ciudad: reg }, sede(s)));
+    if(s % 2 === 0){
+      const nac = ciudades[(s/2 + tri*2) % ciudades.length];
+      torneos.push(Object.assign({ t:'NAC', nom:`Circuito Nacional · Etapa ${tri*6 + s/2}`, ciudad: nac }, sede(s)));
+    }
+  }
+  return { id:'base', base:true, nom:'El pádel de tu país', ic:'🎾', reg:'co', pista, d:'Torneos de club, opens regionales y el circuito nacional.', torneos };
+}
 /* una semana de torneo cansa aunque pierdas pronto: viaje, hotel, entrenar en pista ajena.
    Se cobra al terminar el torneo, para que los % que viste al entrar sean los de verdad. */
 const DESGASTE_SEMANA_TORNEO = 8;
@@ -17,6 +62,7 @@ const MESES_CORTOS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct
 const MESES_LARGOS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 /* contra quién te toca en cada ronda (el mismo cuadro que usa el sorteo) */
 const RANGOS_RIVAL = {
+  ...RANGOS_BASE,
   FIP1:[[900,2000],[700,1700],[520,1300],[400,1000],[300,760]],
   FIP2:[[600,1500],[470,1200],[360,900],[280,680],[200,500]],
   FIP3:[[250,700],[200,550],[155,420],[115,300],[75,200]],
@@ -44,7 +90,11 @@ function asignarSemanas(giras){
 }
 function asegurarSemanas(){
   if(!S.cal) return;
-  for(const tri of S.cal) if(tri.giras.some(g => g.torneos.some(ev => ev.sem == null))) asignarSemanas(tri.giras);
+  S.cal.forEach((tri, i) => {
+    const giras = tri.giras.filter(g => !g.base);
+    if(giras.some(g => g.torneos.some(ev => ev.sem == null))) asignarSemanas(giras);
+    if(S.j && !tri.giras.some(g => g.base)) tri.giras.push(giraBase(S.j, i));
+  });
 }
 function semanaActual(j){ if(!(j.semana >= 1)) j.semana = 1; return j.semana; }
 const semanaDelAnio = (j, sem, tri) => (tri == null ? j.trimestre : tri)*SEMANAS_TRIMESTRE + (sem || semanaActual(j));
@@ -74,7 +124,7 @@ function torneosDeLaSemana(j, sem){ asegurarSemanas(); const s = sem || semanaAc
       de esa categoría: los mismos partidos que luego se juegan, sin fórmulas. ── */
 const PARTIDOS_VALOR = 60;
 function probRonda(j, ev, rank, ronda, total){
-  const D = difActual(), opp = Object.assign(duplaRival(rank), { rating: ratingDeRank(rank) - ((D.ayuda || {})[ev.t] || 0), arq: ARQUETIPOS[3] });
+  const D = difActual(), opp = Object.assign(duplaRival(rank), { rating: (esBase(ev.t) ? ratingAmateur(rank) : ratingDeRank(rank)) - ((D.ayuda || {})[ev.t] || 0), arq: ARQUETIPOS[3] });
   let g = 0;
   for(let i = 0; i < PARTIDOS_VALOR; i++) if(simularPartido(j, opp, ev, ronda, total).gane) g++;
   return g / PARTIDOS_VALOR;
@@ -86,17 +136,21 @@ function umbralResultados(j){
   vig.sort((a, b) => b - a);
   return vig.length < RESULTADOS_QUE_CUENTAN ? 0 : vig[RESULTADOS_QUE_CUENTAN - 1];
 }
+const VALORES = new Map();
 function valorTorneo(j, ev, est){
   const T = TIERS[ev.t], tabla = RANGOS_RIVAL[ev.t] || RANGOS_RIVAL.FIP1;
-  const clave = ['valor', ev.t, ev.nom, semanaDelAnio(j), claveChances(j), est && est.tipo].join('|');
-  return conSemilla(clave, () => {
+  const clave = ['valor', ev.t, ev.nom, semanaDelAnio(j), claveChances(j), est && est.tipo, umbralResultados(j), PREF.dificultad || 'normal'].join('|');
+  if(VALORES.has(clave)) return VALORES.get(clave);
+  if(VALORES.size > 400) VALORES.clear();
+  const v = conSemilla(clave, () => {
     const umbral = umbralResultados(j), suma = x => Math.max(0, x - umbral);
-    let llegar = 1, esperado = 0, sube = 0;
+    let llegar = 1, esperado = 0, sube = 0, primera = null;
     if(est && est.tipo === 'previa'){
       const acc = T.acc === 9999 ? 1200 : T.acc, rk = Math.round(acc*1.9);
       const pp = Math.max(1, Math.round((T.pts[T.pts.length - 2] || 0)*0.2));      // sólo si ganas algún partido de la previa
       for(let k = 0; k < RONDAS_PREVIA; k++){
         const q = probRonda(j, ev, rk, 0, T.rondas);
+        if(primera === null) primera = q;
         if(k >= 1){ esperado += llegar*(1 - q)*pp; sube += llegar*(1 - q)*suma(pp); }
         llegar *= q;
       }
@@ -104,13 +158,22 @@ function valorTorneo(j, ev, est){
     for(let r = 0; r < T.rondas; r++){
       const rg = tabla[Math.min(r, tabla.length - 1)];
       const q = probRonda(j, ev, Math.round(Math.sqrt(rg[0]*rg[1])), r, T.rondas);
+      if(primera === null) primera = q;
       esperado += llegar*(1 - q)*(T.pts[T.rondas - r] || 0);
       sube += llegar*(1 - q)*suma(T.pts[T.rondas - r] || 0);
       llegar *= q;
       if(llegar < .002) break;
     }
-    return { pts: esperado + llegar*T.pts[0], sube: sube + llegar*suma(T.pts[0]), titulo: llegar };
+    return { pts: esperado + llegar*T.pts[0], sube: sube + llegar*suma(T.pts[0]), titulo: llegar, primera };
   });
+  VALORES.set(clave, v);
+  return v;
+}
+/* qué tal te queda un torneo: fácil si lo sueles ganar; si no, por lo que cuesta pasar el primer partido */
+function nivelTorneo(j, ev, est){
+  const v = valorTorneo(j, ev, est), q = v.primera;
+  return v.titulo >= .5 ? { k:'facil', txt:'FÁCIL PARA TI', cls:'' } : q >= .5 ? { k:'nivel', txt:'A TU NIVEL', cls:'acc' }
+       : q >= .3 ? { k:'exigente', txt:'EXIGENTE', cls:'gold' } : { k:'dificil', txt:'MUY DIFÍCIL', cls:'mal' };
 }
 /* ── Lo que te conviene esta semana: el torneo que más puntos te puede dar,
       o descansar si estás sin energía y no es un torneo grande ── */
@@ -125,7 +188,7 @@ function recomendacionSemana(j){
   const mejor = evs[0], grande = ['MJ','FIN','P1'].includes(mejor.ev.t);
   if(j.energia < 25 || (j.energia < 45 && !grande))
     return { tipo:'descanso', txt:`Estás al ${Math.round(j.energia)}% de energía: mejor descansar y llegar fresc${ga()} a la siguiente.`, mejor };
-  if(mejor.valor.sube < .5 && !grande)
+  if(mejor.valor.sube < .2 && !grande)
     return Object.assign(parar, { txt:'Ninguno de estos torneos te sube el ranking: con lo que puedes sacar no mejoras tus 10 mejores resultados. ' + parar.txt, mejor });
   const sube = Math.round(mejor.valor.sube);
   return { tipo:'torneo', ev: mejor.ev, est: mejor.est, valor: mejor.valor,
@@ -201,13 +264,24 @@ function cambiarCalAuto(){ S.j.calAuto = !S.j.calAuto; guardar(); render(); }
 function semanaHTML(j, tr){
   const sem = semanaActual(j), n = semanaDelAnio(j), evs = torneosDeLaSemana(j);
   const r = recomendacionSemana(j), enBaja = r.tipo === 'baja';
-  const estados = evs.map(ev => ({ ev, est: estadoTorneo(j, ev) }));
-  const nivel = estados.filter(x => x.est.tipo === 'directo').map(x => orden(x.ev.t)).sort((a, b) => b - a)[0];
-  const filas = estados.map(x => {
-    let fila = filaTorneo(j, x.ev, x.est, nivel);
-    if(r.tipo === 'torneo' && r.ev.id === x.ev.id) fila = fila.replace('<span class="d" style="margin-top:5px">', `<span class="d" style="margin-top:5px"><span class="pill te-conviene">${ico('estrella')} TE CONVIENE</span> `);
-    return fila;
-  }).join('');
+  const estados = evs.map(ev => {
+    const est = estadoTorneo(j, ev), x = { ev, est, conviene: r.tipo === 'torneo' && r.ev.id === ev.id };
+    if(puedeEntrar(est)) x.nivel = nivelTorneo(j, ev, est);
+    return x;
+  });
+  /* a la vista, lo que puedes jugar sin que sea una locura; lo demás, plegado (lo de abajo que ya no te toca, ni eso) */
+  const visible = x => x.conviene || x.est.tipo === 'jugado' || (x.nivel && x.nivel.k !== 'dificil');
+  const fila = x => {
+    let f = filaTorneo(j, x.ev, x.est, -99);
+    const chips = (x.conviene ? `<span class="pill te-conviene">${ico('estrella')} TE CONVIENE</span> ` : '')
+                + (x.nivel ? `<span class="pill ${x.nivel.cls}">${x.nivel.txt}</span> ` : '');
+    if(chips) f = f.replace('<span class="d" style="margin-top:5px">', `<span class="d" style="margin-top:5px">${chips}`);
+    return f;
+  };
+  const primero = (a, b) => (b.conviene - a.conviene) || orden(b.ev.t) - orden(a.ev.t);
+  const principales = estados.filter(visible).sort(primero);
+  const otros = estados.filter(x => !visible(x) && !(x.est.tipo === 'bajo' && esBase(x.ev.t))).sort(primero);
+  const filas = principales.map(fila).join('') + (otros.length ? `<details class="desp"><summary>${otros.length === 1 ? 'Otro torneo' : `Otros ${otros.length} torneos`} esta semana, fuera de tu nivel</summary>${otros.map(fila).join('')}</details>` : '');
   const principal = enBaja ? `<button class="btn" onclick="descansarSemana(true)">${ico('avanzar')} PASAR LA SEMANA (RECUPERÁNDOME)</button>`
     : r.tipo === 'torneo' ? `<button class="btn" onclick="elegirPorMi()">${ico('jugar')} ${j.calAuto ? 'JUGAR · ' + esc(r.ev.nom).toUpperCase() : 'QUE ELIJA EL JUEGO'}</button>`
     : r.tipo === 'entreno' ? `<button class="btn" onclick="entrenarSemana()">🏋️ ENTRENAR ESTA SEMANA</button>`
@@ -218,7 +292,7 @@ function semanaHTML(j, tr){
       <span class="pill acc">SEMANA ${n} DE 52</span>
     </div>
     <div class="title-lg" style="margin:4px 0 2px">Del ${fechaSemLarga(j, n)}</div>
-    ${evs.length ? `<p class="muted" style="margin:2px 0 9px">${evs.length === 1 ? 'Un torneo' : evs.length + ' torneos a la vez'} esta semana. Juegas uno como mucho, el que te deje tu ranking.</p>${filas}`
+    ${evs.length ? `<p class="muted" style="margin:2px 0 9px">${principales.length ? (principales.length === 1 ? 'Este es el torneo de tu nivel' : 'Estos son los torneos de tu nivel') + ' esta semana. Juegas uno como mucho.' : 'Esta semana no hay ningún torneo a tu nivel.'}</p>${filas}`
       : `<p class="muted" style="margin:4px 0 0">Esta semana no hay torneos en el calendario.</p>`}
     <div class="log" style="margin:10px 0 9px">${r.tipo === 'torneo' ? `⭐ <b>Te conviene: ${esc(r.ev.nom)}</b>. ${r.txt}` : (r.tipo === 'baja' ? '🩹 ' : r.tipo === 'entreno' ? '🏋️ ' : '🛋️ ') + r.txt}</div>
     ${principal}
@@ -233,7 +307,7 @@ function semanaHTML(j, tr){
 function proximasHTML(j){
   const sem = semanaActual(j), filas = [];
   for(let s = sem + 1; s <= Math.min(SEMANAS_TRIMESTRE, sem + 4); s++){
-    const evs = torneosDeLaSemana(j, s), n = semanaDelAnio(j, s);
+    const evs = torneosDeLaSemana(j, s).filter(ev => !(esBase(ev.t) && torneoDemasiadoBajo(j, ev))), n = semanaDelAnio(j, s);
     const chips = evs.length ? evs.map(ev => {
       const e = entradaTorneo(j, ev), bajo = torneoDemasiadoBajo(j, ev);
       const cls = bajo ? 'muted' : e === 'directo' ? 'ok' : e === 'previa' ? 'previa' : 'no';
@@ -263,7 +337,7 @@ function vCalendario(){
       const n = tri*SEMANAS_TRIMESTRE + s, mes = diasSemana(j, n).ini.getMonth();
       if(mes !== mesActual){ if(bloque) h += bloque + '</div>'; bloque = `<div class="card"><div class="eyebrow">${MESES_LARGOS[mes].toUpperCase()}</div><div style="height:4px"></div>`; mesActual = mes; }
       const evs = [], vistos = new Set();
-      giras.forEach(g => g.torneos.forEach(ev => { if(ev.sem === s && !vistos.has(ev.t + ev.nom)){ vistos.add(ev.t + ev.nom); evs.push(ev); } }));
+      giras.forEach(g => g.torneos.forEach(ev => { if(ev.sem === s && !vistos.has(ev.t + ev.nom) && !(esBase(ev.t) && torneoDemasiadoBajo(j, ev))){ vistos.add(ev.t + ev.nom); evs.push(ev); } }));
       const pasada = n < hoy, actual = n === hoy;
       const lo = hechas[n] ? `<span class="cal-hecho">${hechas[n]}</span>` : '';
       bloque += `<div class="cal-fila ${actual ? 'hoy' : pasada ? 'pasada' : ''}"><div class="prox-fecha"><b>Sem ${n}</b><small>${fechaSemCorta(j, n)}</small></div><div class="prox-chips">${
